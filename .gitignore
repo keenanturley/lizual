@@ -24,7 +24,8 @@
 *.lai
 *.la
 *.a
-*.lib
+# Not ignoring .libs because I don't know any better way to get GLFW included in the repo
+# *.lib
 
 # Executables
 *.exe
