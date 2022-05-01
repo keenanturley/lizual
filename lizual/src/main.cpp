@@ -6,6 +6,47 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
+
+#define ENUM_MAP_ITEM(x) \
+    {x, #x}
+
+#define ASSERT(x) \
+    if (!(x)) __debugbreak();
+
+#ifdef DEBUG
+    #define GLCall(x) GLClearError();\
+        x;\
+        ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+#else
+    #define GLCall(x) x
+#endif
+
+static const std::unordered_map<GLenum, std::string> GL_ERROR_MAP{
+    ENUM_MAP_ITEM(GL_NO_ERROR),
+    ENUM_MAP_ITEM(GL_INVALID_ENUM),
+    ENUM_MAP_ITEM(GL_INVALID_VALUE),
+    ENUM_MAP_ITEM(GL_INVALID_OPERATION),
+    ENUM_MAP_ITEM(GL_INVALID_FRAMEBUFFER_OPERATION),
+    ENUM_MAP_ITEM(GL_OUT_OF_MEMORY),
+    ENUM_MAP_ITEM(GL_STACK_UNDERFLOW),
+    ENUM_MAP_ITEM(GL_STACK_OVERFLOW)
+};
+
+
+static void GLClearError() {
+    while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* function, const char* file, int line) {
+    if (GLenum error = glGetError()) {
+        std::cout << "[OpenGL Error] (" 
+            << GL_ERROR_MAP.at(error) << "): "
+            << function << " " << file << ":" << line << std::endl;
+        return false;
+    }
+    return true;
+}
 
 struct ShaderProgramSource {
     std::string vertexSource;
@@ -39,62 +80,48 @@ static ShaderProgramSource ParseShader(const std::string& filePath) {
 }
 
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
-    unsigned int id = glCreateShader(type);
+    GLCall(unsigned int id = glCreateShader(type));
     const char* src = source.c_str();
     
-    glShaderSource(id, 1, &src, NULL);
-    glCompileShader(id);
+    GLCall(glShaderSource(id, 1, &src, NULL));
+    GLCall(glCompileShader(id));
 
     int compileStatus;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
+    GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus));
     if (compileStatus == GL_FALSE) {
         int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
         std::vector<char> logText(length);
 
-        glGetShaderInfoLog(id, length, NULL, logText.data());
+        GLCall(glGetShaderInfoLog(id, length, NULL, logText.data()));
         std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader:" << std::endl;
         if (logText.data() != nullptr) {
             std::cout << logText.data() << std::endl;
         }
 
-        glDeleteShader(id);
+        GLCall(glDeleteShader(id));
     }
 
-    int validateStatus;
-    glGetShaderiv(id, GL_VALIDATE_STATUS, &validateStatus);
-    if (validateStatus == GL_FALSE) {
-        int logLength;
-        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logLength);
-        std::vector<char> logText(logLength);
-
-        glGetProgramInfoLog(id, logLength, NULL, logText.data());
-        std::cout << "Failed to validate " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader:" << std::endl;
-        if (logText.data() != nullptr) {
-            std::cout << logText.data() << std::endl;
-        }
-    }
-    
     return id;
 }
 
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
-    unsigned int program = glCreateProgram();
+    GLCall(unsigned int program = glCreateProgram());
     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
     unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
+    GLCall(glAttachShader(program, vs));
+    GLCall(glAttachShader(program, fs));
 
-    glLinkProgram(program);
-    glValidateProgram(program);
+    GLCall(glLinkProgram(program));
+    GLCall(glValidateProgram(program));
 
     int validateStatus;
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &validateStatus);
+    GLCall(glGetProgramiv(program, GL_VALIDATE_STATUS, &validateStatus));
     if (validateStatus == GL_FALSE) {
         int logLength;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+        GLCall(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength));
 
         if (logLength == 0) {
             std::cout << "Program is invalid. No log info was reported. You're on your own on this one!\n";
@@ -102,7 +129,7 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
         else {
             std::vector<char> logText(logLength);
 
-            glGetProgramInfoLog(program, logLength, NULL, logText.data());
+            GLCall(glGetProgramInfoLog(program, logLength, NULL, logText.data()));
             std::cout << "Program is invalid: " << std::endl;
             if (logText.data() != nullptr) {
                 std::cout << logText.data() << std::endl;
@@ -110,8 +137,8 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
         }
     }
 
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GLCall(glDeleteShader(vs));
+    GLCall(glDeleteShader(fs));
 
     return program;
 }
@@ -166,22 +193,22 @@ int main(void)
     };
 
     unsigned int buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+    GLCall(glGenBuffers(1, &buffer));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    GLCall(glEnableVertexAttribArray(0));
+    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
     unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    GLCall(glGenBuffers(1, &ibo));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
     
     ShaderProgramSource sources = ParseShader("res/shaders/Basic.shader");
 
     unsigned int shader = CreateShader(sources.vertexSource, sources.fragmentSource);
-    glUseProgram(shader);
+    GLCall(glUseProgram(shader));
 
 
     /* Loop until the user closes the window */
@@ -189,18 +216,18 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-        glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr);
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
         /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+        GLCall(glfwSwapBuffers(window));
 
         /* Poll for and process events */
-        glfwPollEvents();
+        GLCall(glfwPollEvents());
     }
 
-    glDeleteProgram(shader);
+    GLCall(glDeleteProgram(shader));
 
     std::cout << "Terminating GLFW...";
     glfwTerminate();
