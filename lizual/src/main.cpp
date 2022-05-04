@@ -7,49 +7,12 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <array>
+#include <memory>
 
-#define ENUM_MAP_ITEM(x) \
-    {x, #x}
-
-#define ASSERT(x) \
-    if (!(x)) __debugbreak();
-
-#ifdef DEBUG
-    #define GLCall(x) GLClearError();\
-        x;\
-        ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-#else
-    #define GLCall(x) x
-#endif
-
-static const std::unordered_map<GLenum, std::string> GL_ERROR_MAP{
-    ENUM_MAP_ITEM(GL_NO_ERROR),
-    ENUM_MAP_ITEM(GL_INVALID_ENUM),
-    ENUM_MAP_ITEM(GL_INVALID_VALUE),
-    ENUM_MAP_ITEM(GL_INVALID_OPERATION),
-    ENUM_MAP_ITEM(GL_INVALID_FRAMEBUFFER_OPERATION),
-    ENUM_MAP_ITEM(GL_OUT_OF_MEMORY),
-    ENUM_MAP_ITEM(GL_STACK_UNDERFLOW),
-    ENUM_MAP_ITEM(GL_STACK_OVERFLOW)
-};
-
-static constexpr int LIZ_GLFW_CONTEXT_VERSION_MAJOR = 3;
-static constexpr int LIZ_GLFW_CONTEXT_VERSION_MINOR = 3;
-
-
-static void GLClearError() {
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall(const char* function, const char* file, int line) {
-    if (GLenum error = glGetError()) {
-        std::cout << "[OpenGL Error] (" 
-            << GL_ERROR_MAP.at(error) << "): "
-            << function << " " << file << ":" << line << std::endl;
-        return false;
-    }
-    return true;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 struct ShaderProgramSource {
     std::string vertexSource;
@@ -64,7 +27,7 @@ static ShaderProgramSource ParseShader(const std::string& filePath) {
     };
 
     std::string line;
-    std::stringstream ss[2];
+    std::array<std::stringstream, 2> ss;
     ShaderType type = ShaderType::NONE;
     while (std::getline(stream, line)) {
         if (line.find("#shader") != std::string::npos) {
@@ -76,17 +39,17 @@ static ShaderProgramSource ParseShader(const std::string& filePath) {
             }
         }
         else {
-            ss[(int)type] << line << '\n';
+            ss.at(static_cast<int>(type)) << line << '\n';
         }
     }
-    return { ss[0].str(), ss[1].str() };
+    return { ss.at(0).str(), ss.at(1).str()};
 }
 
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
-    GLCall(unsigned int id = glCreateShader(type));
+    GLCall(const unsigned int id = glCreateShader(type));
     const char* src = source.c_str();
     
-    GLCall(glShaderSource(id, 1, &src, NULL));
+    GLCall(glShaderSource(id, 1, &src, nullptr));
     GLCall(glCompileShader(id));
 
     int compileStatus;
@@ -96,7 +59,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source) 
         GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
         std::vector<char> logText(length);
 
-        GLCall(glGetShaderInfoLog(id, length, NULL, logText.data()));
+        GLCall(glGetShaderInfoLog(id, length, nullptr, logText.data()));
         std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader:" << std::endl;
         if (logText.data() != nullptr) {
             std::cout << logText.data() << std::endl;
@@ -110,9 +73,9 @@ static unsigned int CompileShader(unsigned int type, const std::string& source) 
 
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
-    GLCall(unsigned int program = glCreateProgram());
-    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+    GLCall(const unsigned int program = glCreateProgram());
+    const unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    const unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
     GLCall(glAttachShader(program, vs));
     GLCall(glAttachShader(program, fs));
@@ -132,7 +95,7 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
         else {
             std::vector<char> logText(logLength);
 
-            GLCall(glGetProgramInfoLog(program, logLength, NULL, logText.data()));
+            GLCall(glGetProgramInfoLog(program, logLength, nullptr, logText.data()));
             std::cout << "Program is invalid: " << std::endl;
             if (logText.data() != nullptr) {
                 std::cout << logText.data() << std::endl;
@@ -191,14 +154,14 @@ int main(void)
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 
     // Create vertex buffer 
-    float positions[] = {
+    const float positions[] = {
         -0.5f, -0.5f,
          0.5f, -0.5f,
          0.5f,  0.5f,
         -0.5f,  0.5f,
     };
 
-    unsigned int indices[] = {
+    const unsigned int indices[] = {
         0, 1, 2,
         2, 3, 0
     };
@@ -207,25 +170,19 @@ int main(void)
     GLCall(glGenVertexArrays(1, &vao));
     GLCall(glBindVertexArray(vao));
 
-    unsigned int buffer;
-    GLCall(glGenBuffers(1, &buffer));
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
+    auto vb = std::make_unique<VertexBuffer>(positions, 4 * 2 * sizeof(float));
 
     GLCall(glEnableVertexAttribArray(0));
-    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, nullptr));
 
-    unsigned int ibo;
-    GLCall(glGenBuffers(1, &ibo));
-    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
-    
+    auto ib = std::make_unique<IndexBuffer>(indices, 6);
+
     ShaderProgramSource sources = ParseShader("res/shaders/Basic.shader");
 
-    unsigned int shader = CreateShader(sources.vertexSource, sources.fragmentSource);
+    const unsigned int shader = CreateShader(sources.vertexSource, sources.fragmentSource);
     GLCall(glUseProgram(shader));
 
-    GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+    GLCall(const int location = glGetUniformLocation(shader, "u_Color"));
     ASSERT(location != -1);
 
     // Unbind everything before rendering
@@ -249,7 +206,7 @@ int main(void)
         GLCall(glUseProgram(shader));
         GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
         GLCall(glBindVertexArray(vao));
-        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+        ib->bind();
 
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
@@ -267,6 +224,10 @@ int main(void)
     }
 
     GLCall(glDeleteProgram(shader));
+   
+    std::cout << "Releasing GL resources...\n";
+    vb.release();
+    ib.release();
 
     std::cout << "Terminating GLFW...";
     glfwTerminate();
