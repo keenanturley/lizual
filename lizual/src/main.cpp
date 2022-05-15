@@ -13,6 +13,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource {
     std::string vertexSource;
@@ -170,10 +171,12 @@ int main(void)
     GLCall(glGenVertexArrays(1, &vao));
     GLCall(glBindVertexArray(vao));
 
+    auto va = std::make_unique<VertexArray>();
     auto vb = std::make_unique<VertexBuffer>(positions, 4 * 2 * sizeof(float));
-
-    GLCall(glEnableVertexAttribArray(0));
-    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, nullptr));
+    VertexBufferLayout layout;
+    
+    layout.push<float>(2);
+    va->addBuffer(*vb, layout);
 
     auto ib = std::make_unique<IndexBuffer>(indices, 6);
 
@@ -205,7 +208,7 @@ int main(void)
         // Bind OpenGL objects
         GLCall(glUseProgram(shader));
         GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
-        GLCall(glBindVertexArray(vao));
+        va->bind();
         ib->bind();
 
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
@@ -226,6 +229,7 @@ int main(void)
     GLCall(glDeleteProgram(shader));
    
     std::cout << "Releasing GL resources...\n";
+    va.release();
     vb.release();
     ib.release();
 
