@@ -2,12 +2,12 @@
 
 class VertexBuffer {
 private:
-	unsigned int mRendererId;
+  unsigned int mRendererId;
 public:
-	VertexBuffer(const void* data, unsigned int size);
-	VertexBuffer(VertexBuffer& other) = delete;
-	~VertexBuffer();
+  VertexBuffer(const void* data, unsigned int size);
+  VertexBuffer(VertexBuffer& other) = delete;
+  ~VertexBuffer();
 
-	void bind() const;
-	void unbind() const;
+  void bind() const;
+  void unbind() const;
 };

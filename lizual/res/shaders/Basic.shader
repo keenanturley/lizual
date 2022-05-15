@@ -5,7 +5,7 @@ layout(location = 0) in vec4 position;
 
 void main()
 {
-   gl_Position = position;
+  gl_Position = position;
 }
 
 #shader fragment
@@ -17,5 +17,5 @@ uniform vec4 u_Color;
 
 void main()
 {
-	color = u_Color;
+  color = u_Color;
 }
