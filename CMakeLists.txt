@@ -14,11 +14,11 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/SDL EXCLUDE_FROM_ALL)
 
 add_executable(lizual 
     src/main.cpp
-    dependencies/GLAD/src/gl.c
 )
 
 # Link to the actual SDL3 library.
 target_link_libraries(lizual PRIVATE SDL3::SDL3)
 
 # Include GLAD
-target_include_directories(lizual PRIVATE "dependencies/GLAD/include")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLAD EXCLUDE_FROM_ALL)
+target_link_libraries(lizual PRIVATE glad)
