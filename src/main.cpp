@@ -1,20 +1,20 @@
 #define SDL_MAIN_USE_CALLBACKS
 
-#include <glad/gl.h>
-
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_video.h>
+#include <glad/gl.h>
 
 #include <memory>
 
 namespace {
 constexpr int kDefaultWindowWidth = 640;
 constexpr int kDefaultWindowHeight = 480;
-constexpr float kTriangleVertices[] = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f,
-                                       0.0f,  0.0f,  0.5f, 0.0f};
+constexpr float kTriangleVertices[] = {
+  -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f
+};
 const char *kVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
@@ -31,7 +31,7 @@ void main() {
   FragColor = vec4(0.5f, 0.5f, 1.0f, 1.0f);
 }
 )";
-} // namespace
+}  // namespace
 
 struct AppState {
   SDL_Window *window;
@@ -41,25 +41,33 @@ struct AppState {
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   // Initialize SDL
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "SDL_Init failed: %s",
-                    SDL_GetError());
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR, "SDL_Init failed: %s", SDL_GetError()
+    );
     return SDL_APP_FAILURE;
   }
   SDL_Log("SDL initialized successfully");
 
-  SDL_Window *window =
-      SDL_CreateWindow("Lizual", kDefaultWindowWidth, kDefaultWindowHeight,
-                       SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+  SDL_Window *window = SDL_CreateWindow(
+    "Lizual",
+    kDefaultWindowWidth,
+    kDefaultWindowHeight,
+    SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+  );
   if (window == nullptr) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR,
-                    "SDL_CreateWindowAndRenderer failed: %s", SDL_GetError());
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR,
+      "SDL_CreateWindowAndRenderer failed: %s",
+      SDL_GetError()
+    );
     return SDL_APP_FAILURE;
   }
 
   SDL_GLContext glContext = SDL_GL_CreateContext(window);
   if (glContext == nullptr) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "SDL_GL_CreateContext failed: %s",
-                    SDL_GetError());
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR, "SDL_GL_CreateContext failed: %s", SDL_GetError()
+    );
     return SDL_APP_FAILURE;
   }
 
@@ -76,8 +84,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   int widthInPixels;
   int heightInPixels;
   if (!SDL_GetWindowSizeInPixels(window, &widthInPixels, &heightInPixels)) {
-    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR,
-                    "SDL_GetWindowSizeInPixels failed: %s", SDL_GetError());
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR,
+      "SDL_GetWindowSizeInPixels failed: %s",
+      SDL_GetError()
+    );
     return SDL_APP_FAILURE;
   }
   glViewport(0, 0, widthInPixels, heightInPixels);
@@ -91,8 +102,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   GLuint vbo;
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(kTriangleVertices), kTriangleVertices,
-               GL_STATIC_DRAW);
+  glBufferData(
+    GL_ARRAY_BUFFER,
+    sizeof(kTriangleVertices),
+    kTriangleVertices,
+    GL_STATIC_DRAW
+  );
 
   // Create the vertex shader
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -105,8 +120,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR,
-                    "GL: Vertex shader compilation failed: %s", infoLog);
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR,
+      "GL: Vertex shader compilation failed: %s",
+      infoLog
+    );
     return SDL_APP_FAILURE;
   }
 
@@ -119,8 +137,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR,
-                    "GL: Fragment shader compilation failed: %s", infoLog);
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR,
+      "GL: Fragment shader compilation failed: %s",
+      infoLog
+    );
     return SDL_APP_FAILURE;
   }
 
@@ -134,8 +155,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
   if (!success) {
     glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR,
-                    "GL: Shader program linking failed: %s", infoLog);
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR, "GL: Shader program linking failed: %s", infoLog
+    );
     return SDL_APP_FAILURE;
   }
 
@@ -151,8 +173,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   glEnableVertexAttribArray(0);
 
   *appstate = new AppState{
-      window,
-      glContext,
+    window,
+    glContext,
   };
   SDL_Log("App initialization complete");
 
@@ -184,10 +206,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
   if (event->type == SDL_EVENT_WINDOW_RESIZED) {
     int widthInPixels;
     int heightInPixels;
-    if (!SDL_GetWindowSizeInPixels(state->window, &widthInPixels,
-                                   &heightInPixels)) {
-      SDL_LogCritical(SDL_LOG_CATEGORY_ERROR,
-                      "SDL_GetWindowSizeInPixels failed: %s", SDL_GetError());
+    if (!SDL_GetWindowSizeInPixels(
+          state->window, &widthInPixels, &heightInPixels
+        )) {
+      SDL_LogCritical(
+        SDL_LOG_CATEGORY_ERROR,
+        "SDL_GetWindowSizeInPixels failed: %s",
+        SDL_GetError()
+      );
       return SDL_APP_FAILURE;
     }
     glViewport(0, 0, widthInPixels, heightInPixels);
