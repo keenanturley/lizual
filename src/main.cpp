@@ -7,14 +7,28 @@
 #include <SDL3/SDL_video.h>
 #include <glad/gl.h>
 
+#include <cstdint>
 #include <memory>
 
 namespace {
 constexpr int kDefaultWindowWidth = 640;
 constexpr int kDefaultWindowHeight = 480;
-constexpr float kTriangleVertices[] = {
-  -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f
+
+// clang-format off
+// Vertices for a rectangle
+constexpr float kVertices[] = {
+   0.5f,  0.5f, 0.0f,  // top right
+   0.5f, -0.5f, 0.0f,  // bottom right
+  -0.5f, -0.5f, 0.0f,  // bottom left
+  -0.5f,  0.5f, 0.0f   // top left 
 };
+
+constexpr uint32_t indices[] = {
+  0, 1, 3, // first triangle
+  1, 2, 3  // second triangle
+};
+// clang-format on
+
 const char *kVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
@@ -93,20 +107,23 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   }
   glViewport(0, 0, widthInPixels, heightInPixels);
 
-  // Create a vertex array object (VAO) for the triangle
+  // Create a vertex array object (VAO) for the rectangle
   GLuint vao;
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  // Create a vertex buffer object (VBO) for the triangle
+  // Create a vertex buffer object (VBO) for the rectangle
   GLuint vbo;
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
+
+  // Element buffer object (EBO) for the rectangle indices
+  GLuint ebo;
+  glGenBuffers(1, &ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(
-    GL_ARRAY_BUFFER,
-    sizeof(kTriangleVertices),
-    kTriangleVertices,
-    GL_STATIC_DRAW
+    GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW
   );
 
   // Create the vertex shader
@@ -188,7 +205,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Draw the triangle
-  glDrawArrays(GL_TRIANGLES, 0, 3);
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
   SDL_GL_SwapWindow(state->window);
 
