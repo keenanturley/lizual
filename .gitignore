@@ -1,2 +1,5 @@
 # Everything in the build folder
 build/*
+
+# VS Code workspace files
+*.code-workspace
