@@ -1,5 +1,9 @@
 #define SDL_MAIN_USE_CALLBACKS
 
+#include <cstdint>
+#include <memory>
+#include <fstream>
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
@@ -7,12 +11,13 @@
 #include <SDL3/SDL_video.h>
 #include <glad/gl.h>
 
-#include <cstdint>
-#include <memory>
+#include "Shader.h"
 
 namespace {
 constexpr int kDefaultWindowWidth = 640;
 constexpr int kDefaultWindowHeight = 480;
+constexpr std::string kVertexShaderPath = "shaders/default.vert";
+constexpr std::string kFragmentShaderPath = "shaders/default.frag";
 
 // clang-format off
 // Vertices for a rectangle
@@ -29,34 +34,12 @@ constexpr uint32_t indices[] = {
   1, 2, 3  // second triangle
 };
 // clang-format on
-
-const char *kVertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
-
-out vec3 ourColor;
-
-void main() {
-  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-  ourColor = aColor;
-}
-)";
-const char *kFragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-in vec3 ourColor;
-
-void main() {
-  FragColor = vec4(ourColor, 1.0f);
-}
-)";
 }  // namespace
 
 struct AppState {
   SDL_Window *window;
   SDL_GLContext glContext;
-  GLuint shaderProgram;
+  Shader* shader;
 };
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
@@ -140,64 +123,21 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW
   );
 
-  // Create the vertex shader
-  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &kVertexShaderSource, nullptr);
-  glCompileShader(vertexShader);
+  std::string basePath = SDL_GetBasePath();
 
-  // Check for compilation errors
-  GLint success;
-  char infoLog[512];
-  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR,
-      "GL: Vertex shader compilation failed: %s",
-      infoLog
-    );
+  // Create the shader
+  // remember to have a try catch block for handling file read exceptions
+  Shader* shader; 
+  try {
+    shader = new Shader(basePath + kVertexShaderPath, basePath + kFragmentShaderPath);
+  } catch (const std::ifstream::failure& e) {
+    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "Failed to read shader file: %s", e.what());
+    return SDL_APP_FAILURE;
+  } catch (const std::runtime_error& e) {
+    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "Failed to create shader: %s", e.what());
     return SDL_APP_FAILURE;
   }
-
-  // Create the fragment shader
-  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &kFragmentShaderSource, nullptr);
-  glCompileShader(fragmentShader);
-
-  // Check for compilation errors
-  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR,
-      "GL: Fragment shader compilation failed: %s",
-      infoLog
-    );
-    return SDL_APP_FAILURE;
-  }
-
-  // Create the shader program
-  GLuint shaderProgram = glCreateProgram();
-  glAttachShader(shaderProgram, vertexShader);
-  glAttachShader(shaderProgram, fragmentShader);
-  glLinkProgram(shaderProgram);
-
-  // Check for linking errors
-  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-  if (!success) {
-    glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR, "GL: Shader program linking failed: %s", infoLog
-    );
-    return SDL_APP_FAILURE;
-  }
-
-  // Use the shader program
-  glUseProgram(shaderProgram);
-
-  // Delete the shaders as they're linked into the program now
-  glDeleteShader(vertexShader);
-  glDeleteShader(fragmentShader);
+  shader->Use();
 
   // Set the vertex attribute pointers
   // position
@@ -212,7 +152,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   *appstate = new AppState{
     window,
     glContext,
-    shaderProgram,
+    shader,
   };
   SDL_Log("App initialization complete");
 
@@ -225,12 +165,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Modify the color uniform over time
-  uint64_t time = SDL_GetTicks();
-  float greenValue = (sin(time / 1000.0f) / 2.0f) + 0.5f;
-  int vertexColorLocation =
-    glGetUniformLocation(state->shaderProgram, "ourColor");
-  glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+  // Time is seconds since the start of the program
+  float time = SDL_GetTicks() / 1000.0f;
+  state->shader->SetFloat("uTime", time);
 
   // Draw the triangle
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -269,6 +206,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState *state = static_cast<AppState *>(appstate);
+
+  delete state->shader;
 
   SDL_Log("Exiting with result: %d", result);
   SDL_GL_DestroyContext(state->glContext);
