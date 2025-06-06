@@ -17,10 +17,11 @@ constexpr int kDefaultWindowHeight = 480;
 // clang-format off
 // Vertices for a rectangle
 constexpr float kVertices[] = {
-   0.5f,  0.5f, 0.0f,  // top right
-   0.5f, -0.5f, 0.0f,  // bottom right
-  -0.5f, -0.5f, 0.0f,  // bottom left
-  -0.5f,  0.5f, 0.0f   // top left 
+  // positions        // colors
+   0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right
+   0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
+  -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
+  -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, // top left 
 };
 
 constexpr uint32_t indices[] = {
@@ -32,17 +33,22 @@ constexpr uint32_t indices[] = {
 const char *kVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+
+out vec3 ourColor;
 
 void main() {
   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+  ourColor = aColor;
 }
 )";
 const char *kFragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
+in vec3 ourColor;
 
 void main() {
-  FragColor = vec4(0.5f, 0.5f, 1.0f, 1.0f);
+  FragColor = vec4(ourColor, 1.0f);
 }
 )";
 }  // namespace
@@ -50,6 +56,7 @@ void main() {
 struct AppState {
   SDL_Window *window;
   SDL_GLContext glContext;
+  GLuint shaderProgram;
 };
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
@@ -193,12 +200,19 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   glDeleteShader(fragmentShader);
 
   // Set the vertex attribute pointers
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+  // position
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
+  // color
+  glVertexAttribPointer(
+    1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))
+  );
+  glEnableVertexAttribArray(1);
 
   *appstate = new AppState{
     window,
     glContext,
+    shaderProgram,
   };
   SDL_Log("App initialization complete");
 
@@ -210,6 +224,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  // Modify the color uniform over time
+  uint64_t time = SDL_GetTicks();
+  float greenValue = (sin(time / 1000.0f) / 2.0f) + 0.5f;
+  int vertexColorLocation =
+    glGetUniformLocation(state->shaderProgram, "ourColor");
+  glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
   // Draw the triangle
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
