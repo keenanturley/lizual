@@ -25,6 +25,10 @@ target_link_libraries(lizual PRIVATE SDL3::SDL3)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLAD EXCLUDE_FROM_ALL)
 target_link_libraries(lizual PRIVATE glad)
 
+# Link to stb_image
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/stb_image EXCLUDE_FROM_ALL)
+target_link_libraries(lizual PRIVATE stb_image)
+
 # Set the assets directory as a compile definition.
 target_compile_definitions(lizual PRIVATE LIZUAL_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
 

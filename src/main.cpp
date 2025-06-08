@@ -10,6 +10,7 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_video.h>
 #include <glad/gl.h>
+#include <stb_image.h>
 
 #include "Shader.h"
 
@@ -19,6 +20,7 @@ constexpr int kDefaultWindowHeight = 480;
 const std::filesystem::path kAssetsDir = LIZUAL_ASSETS_DIR;
 const std::filesystem::path kVertexShaderPath = kAssetsDir / "shaders/default.vert";
 const std::filesystem::path kFragmentShaderPath = kAssetsDir / "shaders/default.frag";
+const std::filesystem::path kContainerTexturePath = kAssetsDir / "textures/container.jpg";
 
 // clang-format off
 // Vertices for a rectangle
@@ -30,7 +32,14 @@ constexpr float kVertices[] = {
   -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, // top left 
 };
 
-constexpr uint32_t indices[] = {
+constexpr float kTexCoords[] = {
+  1.0f, 1.0f, // top right
+  1.0f, 0.0f, // bottom right
+  0.0f, 0.0f, // bottom left
+  0.0f, 1.0f, // top left
+};
+
+constexpr uint32_t kIndices[] = {
   0, 1, 3, // first triangle
   1, 2, 3  // second triangle
 };
@@ -121,7 +130,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   glGenBuffers(1, &ebo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW
+    GL_ELEMENT_ARRAY_BUFFER, sizeof(kIndices), kIndices, GL_STATIC_DRAW
   );
 
   // Create the shader
@@ -147,6 +156,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))
   );
   glEnableVertexAttribArray(1);
+
+  // Load the container texture
+  SDL_Log("Loading container texture");
+  int width, height, numChannels;
+  unsigned char* data = stbi_load(kContainerTexturePath.c_str(), &width, &height, &numChannels, 0);
+  if (data == nullptr) {
+    SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "[stb_image] Failed to load texture from path %s", kContainerTexturePath.c_str());
+    return SDL_APP_FAILURE;
+  } 
+  SDL_Log("  Loaded container texture: %d x %d", width, height);
 
   *appstate = new AppState{
     window,
