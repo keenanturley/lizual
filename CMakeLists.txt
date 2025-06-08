@@ -25,10 +25,7 @@ target_link_libraries(lizual PRIVATE SDL3::SDL3)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLAD EXCLUDE_FROM_ALL)
 target_link_libraries(lizual PRIVATE glad)
 
-set(SHADERS_DIR "shaders")
-add_custom_command(TARGET lizual POST_BUILD
-    COMMAND "${CMAKE_COMMAND}" -E
-        copy_directory_if_different
-        ${CMAKE_SOURCE_DIR}/src/${SHADERS_DIR}
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SHADERS_DIR}
-    COMMENT "Copying shaders to output directory")
+# Set the assets directory as a compile definition.
+target_compile_definitions(lizual PRIVATE LIZUAL_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
+
+# TODO: add installation logic to copy assets

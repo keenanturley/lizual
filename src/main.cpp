@@ -16,8 +16,9 @@
 namespace {
 constexpr int kDefaultWindowWidth = 640;
 constexpr int kDefaultWindowHeight = 480;
-constexpr std::string kVertexShaderPath = "shaders/default.vert";
-constexpr std::string kFragmentShaderPath = "shaders/default.frag";
+const std::string kAssetsDir = LIZUAL_ASSETS_DIR;
+const std::string kVertexShaderPath = kAssetsDir + "shaders/default.vert";
+const std::string kFragmentShaderPath = kAssetsDir + "shaders/default.frag";
 
 // clang-format off
 // Vertices for a rectangle
@@ -123,13 +124,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW
   );
 
-  std::string basePath = SDL_GetBasePath();
-
   // Create the shader
   // remember to have a try catch block for handling file read exceptions
   Shader* shader; 
+  SDL_Log("kVertexShaderPath: %s", kVertexShaderPath.c_str());
+  SDL_Log("kFragmentShaderPath: %s", kFragmentShaderPath.c_str());
   try {
-    shader = new Shader(basePath + kVertexShaderPath, basePath + kFragmentShaderPath);
+    shader = new Shader(kVertexShaderPath, kFragmentShaderPath);
   } catch (const std::ifstream::failure& e) {
     SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "Failed to read shader file: %s", e.what());
     return SDL_APP_FAILURE;
