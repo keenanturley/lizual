@@ -7,7 +7,7 @@
 #include <sstream>
 
 Shader::Shader(
-  const std::string& vertexShaderPath, const std::string& fragmentShaderPath
+  const std::filesystem::path& vertexShaderPath, const std::filesystem::path& fragmentShaderPath
 ) {
   // 1. Retrieve the vertex and fragment source from the file paths
   std::string vertexShaderSource;

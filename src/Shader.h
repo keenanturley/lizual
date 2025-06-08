@@ -3,11 +3,12 @@
 #include <glad/gl.h>
 
 #include <string>
+#include <filesystem>
 
 class Shader {
  public:
   Shader(
-    const std::string& vertexShaderPath, const std::string& fragmentShaderPath
+    const std::filesystem::path& vertexShaderPath, const std::filesystem::path& fragmentShaderPath
   );
   void Use();
   void SetBool(const std::string& name, bool value) const;
