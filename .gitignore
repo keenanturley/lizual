@@ -3,3 +3,6 @@ build/*
 
 # VS Code workspace files
 *.code-workspace
+
+# MacOS metadata file
+*.DS_Store
