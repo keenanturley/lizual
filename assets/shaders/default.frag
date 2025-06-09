@@ -12,7 +12,7 @@ const float PI = 3.1415926535897932384626433832795;
 
 void main() {
   vec3 oscillation = vec3(sin(uTime) + 0.5f, sin(uTime - (PI / 2.0f)) + 0.5f, sin(uTime + (PI / 2.0f)) + 0.5f);
-  vec4 textureColor = mix(texture(uTexture, texCoord), texture(uTexture2, vec2(-texCoord.x, texCoord.y)), 0.2f);
+  vec4 textureColor = mix(texture(uTexture, texCoord), texture(uTexture2, vec2(-texCoord.x, texCoord.y) * 2), 0.2f);
   FragColor = textureColor;
   // FragColor = textureColor * vec4(ourColor * oscillation, 1.0f);
 }
