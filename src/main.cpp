@@ -107,6 +107,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     return SDL_APP_FAILURE;
   }
   glViewport(0, 0, widthInPixels, heightInPixels);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
   // Create a vertex array object (VAO) for the rectangle
   GLuint vao;
@@ -194,7 +196,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   glGenTextures(1, &textureId2);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, textureId2);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
   glGenerateMipmap(GL_TEXTURE_2D);
   shader->SetInt("uTexture2", 1);
   
