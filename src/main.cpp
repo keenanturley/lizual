@@ -1,5 +1,7 @@
 #define SDL_MAIN_USE_CALLBACKS
 
+#include <algorithm>
+#include <filesystem>
 #include <cstdint>
 #include <memory>
 #include <fstream>
@@ -206,6 +208,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   // Free the image
   stbi_image_free(data2);
 
+  // learnopengl/textures/exercises/4: use a uniform to mix
+  // Initialize the mix uniform
+  shader->SetFloat("uMix", 0.2f);
+
   *appstate = new AppState{
     window,
     glContext,
@@ -256,6 +262,24 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
       return SDL_APP_FAILURE;
     }
     glViewport(0, 0, widthInPixels, heightInPixels);
+  }
+
+  // learnopengl/textures/exercises/4: use a uniform to mix
+  if (event->type == SDL_EVENT_KEY_DOWN) {
+    switch (event->key.key) {
+      case SDLK_UP: {
+        float uMix = state->shader->GetFloat("uMix");
+        uMix = std::clamp(uMix + 0.1f, 0.0f, 1.0f);
+        state->shader->SetFloat("uMix", uMix);
+        break;
+      }
+      case SDLK_DOWN: {
+        float uMix = state->shader->GetFloat("uMix");
+        uMix = std::clamp(uMix - 0.1f, 0.0f, 1.0f);
+        state->shader->SetFloat("uMix", uMix);
+        break;
+      }
+    }
   }
 
   return SDL_APP_CONTINUE;

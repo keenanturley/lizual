@@ -79,12 +79,27 @@ Shader::Shader(
 }
 
 void Shader::Use() { glUseProgram(shaderProgram_); }
+
 void Shader::SetBool(const std::string& name, bool value) const {
   glUniform1i(glGetUniformLocation(shaderProgram_, name.c_str()), (int)value);
 }
+
 void Shader::SetInt(const std::string& name, int value) const {
   glUniform1i(glGetUniformLocation(shaderProgram_, name.c_str()), value);
 }
+
+float Shader::GetFloat(const std::string& name) const {
+  GLint location = glGetUniformLocation(shaderProgram_, name.c_str());
+  if (location == -1) {
+    throw std::runtime_error(
+      std::format("GL: Uniform {} not found", name)
+    );
+  }
+  float value;
+  glGetUniformfv(shaderProgram_, location, &value);
+  return value;
+}
+
 void Shader::SetFloat(const std::string& name, float value) const {
   glUniform1f(glGetUniformLocation(shaderProgram_, name.c_str()), value);
 }

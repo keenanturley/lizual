@@ -7,6 +7,7 @@ out vec4 FragColor;
 uniform float uTime;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
+uniform float uMix;
 
 const float PI = 3.1415926535897932384626433832795;
 
@@ -25,8 +26,6 @@ void main() {
 
   vec4 texColor = texture(uTexture, texCoord);
   vec4 texColor2 = texture(uTexture2, texCoord);
-  // texColor2 = vec4(texColor2.rgb, texColor2.a * alpha);
-  texColor2 = vec4(texColor2.rgb * alpha, 1.0f);
-
-  FragColor = vec4(mix(texColor.rgb, texColor2.rgb, 0.2f), 1.0f);
+  texColor2 = vec4(texColor2.rgb, texColor2.a * alpha * uMix);
+  FragColor = vec4(mix(texColor.rgb, texColor2.rgb, texColor2.a), 1.0f);
 }
