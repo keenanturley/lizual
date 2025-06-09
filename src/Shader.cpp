@@ -7,7 +7,8 @@
 #include <sstream>
 
 Shader::Shader(
-  const std::filesystem::path& vertexShaderPath, const std::filesystem::path& fragmentShaderPath
+  const std::filesystem::path& vertexShaderPath,
+  const std::filesystem::path& fragmentShaderPath
 ) {
   // 1. Retrieve the vertex and fragment source from the file paths
   std::string vertexShaderSource;
@@ -91,9 +92,7 @@ void Shader::SetInt(const std::string& name, int value) const {
 float Shader::GetFloat(const std::string& name) const {
   GLint location = glGetUniformLocation(shaderProgram_, name.c_str());
   if (location == -1) {
-    throw std::runtime_error(
-      std::format("GL: Uniform {} not found", name)
-    );
+    throw std::runtime_error(std::format("GL: Uniform {} not found", name));
   }
   float value;
   glGetUniformfv(shaderProgram_, location, &value);
@@ -104,6 +103,10 @@ void Shader::SetFloat(const std::string& name, float value) const {
   glUniform1f(glGetUniformLocation(shaderProgram_, name.c_str()), value);
 }
 
-void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3) const {
-  glUniform4f(glGetUniformLocation(shaderProgram_, name.c_str()), v0, v1, v2, v3);
+void Shader::SetUniform4f(
+  const std::string& name, float v0, float v1, float v2, float v3
+) const {
+  glUniform4f(
+    glGetUniformLocation(shaderProgram_, name.c_str()), v0, v1, v2, v3
+  );
 }

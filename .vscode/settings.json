@@ -1,5 +1,8 @@
 {
     "files.associations": {
         "gl.h": "c"
-    }
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
 }

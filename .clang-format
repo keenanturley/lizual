@@ -7,3 +7,6 @@ AllowShortBlocksOnASingleLine: Always
 AllowShortEnumsOnASingleLine: true
 BinPackArguments: false
 BinPackParameters: OnePerLine
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
