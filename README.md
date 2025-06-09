@@ -15,8 +15,11 @@ cmake -S . -B build
 # Build the executable
 cmake --build build
 
-# [Windows] Run the app
+# Run the app
+# [Windows]
 build/Debug/lizual.exe
+# [Linux / MacOS]
+build/Debug/lizual
 ```
 
 ## Acknowledgements
