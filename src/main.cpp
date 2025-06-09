@@ -55,6 +55,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     return SDL_APP_FAILURE;
   }
   SDL_Log("SDL initialized successfully");
+  
+  // Limit FPS temporarily so my laptop doesn't burn my legs
+  SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, "60");
 
   // Set OpenGL version attributes, necessary for MacOSX, otherwise it will
   // default to OpenGL 2.1 and segfault on use of functions not available in 2.1
