@@ -21,6 +21,7 @@ const std::filesystem::path kAssetsDir = LIZUAL_ASSETS_DIR;
 const std::filesystem::path kVertexShaderPath = kAssetsDir / "shaders/default.vert";
 const std::filesystem::path kFragmentShaderPath = kAssetsDir / "shaders/default.frag";
 const std::filesystem::path kContainerTexturePath = kAssetsDir / "textures/container.jpg";
+const std::filesystem::path kAwesomeFaceTexturePath = kAssetsDir / "textures/awesomeface.png";
 
 // clang-format off
 // Vertices for a rectangle
@@ -167,12 +168,38 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
   // Create an OpenGL texture
   GLuint textureId;
   glGenTextures(1, &textureId);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textureId);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
   glGenerateMipmap(GL_TEXTURE_2D);
+  shader->SetInt("uTexture", 0);
   
   // Free the image
   stbi_image_free(data);
+
+  // Load the awesome face texture
+  SDL_Log("Loading awesome face texture");
+  // Flip vertically because it's inversed by default
+  stbi_set_flip_vertically_on_load(true);
+  unsigned char* data2 = stbi_load(kAwesomeFaceTexturePath.c_str(), &width, &height, &numChannels, 0);
+  stbi_set_flip_vertically_on_load(false);
+  if (data == nullptr) {
+    SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "[stb_image] Failed to load texture from path %s", kContainerTexturePath.c_str());
+    return SDL_APP_FAILURE;
+  } 
+  SDL_Log("  Loaded awesome face texture: %d x %d", width, height);
+
+  // Create an OpenGL texture
+  GLuint textureId2;
+  glGenTextures(1, &textureId2);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, textureId2);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  shader->SetInt("uTexture2", 1);
+  
+  // Free the image
+  stbi_image_free(data2);
 
   *appstate = new AppState{
     window,
