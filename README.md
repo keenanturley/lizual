@@ -22,7 +22,16 @@ build/Debug/lizual.exe
 build/Debug/lizual
 ```
 
+## Dependencies
+
+1. [GLAD](https://github.com/Dav1dde/glad)
+1. [SDL3](https://github.com/libsdl-org/SDL)
+1. [stb_image](https://github.com/libigl/libigl-stb/blob/master/stb_image.h)
+1. [glm](https://github.com/g-truc/glm)
+
 ## Acknowledgements
+
+These resources have helped me learn OpenGL:
 
 - [LearnOpenGL](https://learnopengl.com/)
 - [TheCherno OpenGL Playlist](https://www.youtube.com/playlist?list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2)
