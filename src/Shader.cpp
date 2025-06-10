@@ -1,5 +1,6 @@
 #include "Shader.h"
 
+#include <glm/gtc/type_ptr.hpp>
 #include <SDL3/SDL_log.h>
 
 #include <fstream>
@@ -108,5 +109,16 @@ void Shader::SetUniform4f(
 ) const {
   glUniform4f(
     glGetUniformLocation(shaderProgram_, name.c_str()), v0, v1, v2, v3
+  );
+}
+
+void Shader::SetUniformMatrix4fv(
+  const std::string& name, const glm::mat4& value
+) {
+  glUniformMatrix4fv(
+    glGetUniformLocation(shaderProgram_, name.c_str()),
+    1,
+    GL_FALSE,
+    glm::value_ptr(value)
   );
 }

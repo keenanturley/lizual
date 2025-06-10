@@ -2,6 +2,7 @@
 
 #include <glad/gl.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
@@ -265,6 +266,12 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   // Time is seconds since the start of the program
   float time = SDL_GetTicks() / 1000.0f;
   state->shader->SetFloat("uTime", time);
+
+  // Scale and rotate the container
+  glm::mat4 trans = glm::mat4(1.0f);
+  trans = glm::rotate(trans, time, glm::vec3(0.0f, 0.0f, 1.0f));
+  trans = glm::scale(trans, glm::vec3(1.5f, 1.5f, 1.5f));
+  state->shader->SetUniformMatrix4fv("uTransform", trans);
 
   // Draw the triangle
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
