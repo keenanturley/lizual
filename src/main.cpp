@@ -32,18 +32,50 @@ const std::filesystem::path kAwesomeFaceTexturePath =
   kAssetsDir / "textures/awesomeface.png";
 
 // clang-format off
-// Vertices for a rectangle
-constexpr float kVertices[] = {
-  // positions        // colors         // texture coords
-   0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-   0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-  -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-  -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top left 
-};
+// Vertices for a cube
+float kVertices[] = {
+  // positions          // texcoords
+  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+   0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-constexpr uint32_t kIndices[] = {
-  0, 1, 3, // first triangle
-  1, 2, 3  // second triangle
+  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+  -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+   0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+   0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 // clang-format on
 }  // namespace
@@ -118,8 +150,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     return SDL_APP_FAILURE;
   }
   glViewport(0, 0, widthInPixels, heightInPixels);
+
+  // Enable blending so I can test transparency
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // Enable Depth testing so we don't get behind fragments drawn in front
+  glEnable(GL_DEPTH_TEST);
 
   // Create a vertex array object (VAO) for the rectangle
   GLuint vao;
@@ -131,14 +168,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
-
-  // Element buffer object (EBO) for the rectangle indices
-  GLuint ebo;
-  glGenBuffers(1, &ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(kIndices), kIndices, GL_STATIC_DRAW
-  );
 
   // Create the shader
   // remember to have a try catch block for handling file read exceptions
@@ -159,20 +188,15 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   shader->Use();
 
   // Set the vertex attribute pointers
-  int stride = 8 * sizeof(float);
+  int stride = 5 * sizeof(float);
   // position
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(0);
-  // color
-  glVertexAttribPointer(
-    1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float))
-  );
-  glEnableVertexAttribArray(1);
   // texture coords
   glVertexAttribPointer(
-    2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float))
+    1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float))
   );
-  glEnableVertexAttribArray(2);
+  glEnableVertexAttribArray(1);
 
   // Load the container texture
   SDL_Log("Loading container texture");
@@ -261,20 +285,32 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   AppState* state = static_cast<AppState*>(appstate);
 
   glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Time is seconds since the start of the program
   float time = SDL_GetTicks() / 1000.0f;
   state->shader->SetFloat("uTime", time);
 
-  // Scale and rotate the container
-  glm::mat4 trans = glm::mat4(1.0f);
-  trans = glm::rotate(trans, time, glm::vec3(0.0f, 0.0f, 1.0f));
-  trans = glm::scale(trans, glm::vec3(1.5f, 1.5f, 1.5f));
-  state->shader->SetUniformMatrix4fv("uTransform", trans);
+  // Create Model-View-Projection (MVP) matrices
+  glm::mat4 model = glm::mat4(1.0f);
+  model =
+    glm::rotate(model, time * glm::radians(50.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+  glm::mat4 view = glm::mat4(1.0f);
+  view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+  int windowWidth, windowHeight;
+  SDL_GetWindowSizeInPixels(state->window, &windowWidth, &windowHeight);
+  float windowAspectRatio = (float)windowWidth / windowHeight;
+  glm::mat4 projection =
+    glm::perspective(glm::radians(45.0f), windowAspectRatio, 0.1f, 100.0f);
+
+  state->shader->SetUniformMatrix4fv("uModel", model);
+  state->shader->SetUniformMatrix4fv("uView", view);
+  state->shader->SetUniformMatrix4fv("uProjection", projection);
 
   // Draw the triangle
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
 
   SDL_GL_SwapWindow(state->window);
 
