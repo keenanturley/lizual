@@ -408,6 +408,16 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     glViewport(0, 0, widthInPixels, heightInPixels);
   }
 
+  if (event->type == SDL_EVENT_KEY_DOWN) {
+    switch (event->key.scancode) {
+      case SDL_SCANCODE_ESCAPE:
+        SDL_Log("Escape key pressed, quitting.");
+        return SDL_APP_SUCCESS;
+      default:
+        break;
+    }
+  }
+
   return SDL_APP_CONTINUE;
 }
 
