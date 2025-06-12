@@ -1,6 +1,5 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <SDL3/SDL_log.h>
 
 #include "Camera.h"
 
@@ -23,7 +22,6 @@ void Camera::Rotate(glm::vec2 deltaDegrees) {
 
   // Compute target first
   float targetPitch = glm::mod(pitch + deltaDegrees.x, 360.0f);
-  SDL_Log("target pitch = %f", targetPitch);
   // Clamp it between [0,90] or [270,360]
   // It can't be less than 0 because we just modded it, so it can only be in
   // [0, 360]. We need to clamp (90, 180] down to 90 and clamp (180, 270] to
@@ -38,7 +36,6 @@ void Camera::Rotate(glm::vec2 deltaDegrees) {
   // Yaw has no constraints, so just mod it to make sure it doesn't go out of
   // control.
   yaw = glm::mod(yaw + deltaDegrees.y, 360.0f);
-  SDL_Log("pitch = %f, yaw = %f", pitch, yaw);
 }
 
 void Camera::Move(glm::vec3 deltaPosition) {
