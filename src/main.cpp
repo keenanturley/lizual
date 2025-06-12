@@ -16,6 +16,7 @@
 #include <fstream>
 #include <memory>
 
+#include "Camera.h"
 #include "Shader.h"
 
 namespace {
@@ -95,8 +96,12 @@ constexpr glm::vec3 kCubePositions[] = {
 
 struct AppState {
   SDL_Window* window;
+  // Previous tick (Nanoseconds since SDL was initialized) that was processed by
+  // the frameloop
+  uint64_t previousTickNs;
   SDL_GLContext glContext;
   Shader* shader;
+  std::unique_ptr<Camera> camera;
 };
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
@@ -284,11 +289,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   // Initialize the mix uniform
   shader->SetFloat("uMix", 0.2f);
 
-  *appstate = new AppState{
-    window,
-    glContext,
-    shader,
-  };
+  // Configure Camera
+  std::unique_ptr camera =
+    std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
+
+  uint64_t lastTick = SDL_GetTicksNS();
+  *appstate =
+    new AppState{window, lastTick, glContext, shader, std::move(camera)};
   SDL_Log("App initialization complete");
 
   return SDL_APP_CONTINUE;
@@ -296,19 +303,41 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
 
 SDL_AppResult SDL_AppIterate(void* appstate) {
   AppState* state = static_cast<AppState*>(appstate);
+  const uint64_t currentTickNs = SDL_GetTicksNS();
+  const float currentTickSeconds =
+    static_cast<float>(currentTickNs) / static_cast<float>(SDL_NS_PER_SECOND);
+  const uint64_t deltaTicksNs = currentTickNs - state->previousTickNs;
+  const float deltaTimeSeconds =
+    static_cast<float>(deltaTicksNs) / static_cast<float>(SDL_NS_PER_SECOND);
 
-  glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // -- Get Input
+  const bool* keys = SDL_GetKeyboardState(nullptr);
+
+  // -- Update state
+  // Update Camera based on input
+  // TODO: Refactor this into a KeyboardCameraController class or something
+  if (state->camera == nullptr) {
+    SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Camera is null");
+    return SDL_APP_FAILURE;
+  }
+  Camera& camera = *state->camera;
+  // Sensitivity in degrees per second
+  float sensitivity = 20.0f;
+  // XY(pitch,yaw) rotation delta in degrees
+  glm::vec2 rotationDelta{
+    (-1 * keys[SDL_SCANCODE_DOWN]) + keys[SDL_SCANCODE_UP],
+    (-1 * keys[SDL_SCANCODE_RIGHT]) + keys[SDL_SCANCODE_LEFT]
+  };
+  // Apply magnitude
+  rotationDelta *= sensitivity * deltaTimeSeconds;
+  camera.Rotate(rotationDelta);
 
   // Time is seconds since the start of the program
-  float time = SDL_GetTicks() / 1000.0f;
-  state->shader->SetFloat("uTime", time);
+  state->shader->SetFloat("uTime", currentTickSeconds);
 
   // Create Model-View-Projection (MVP) matrices
   glm::mat4 model = glm::mat4(1.0f);
-
-  glm::mat4 view = glm::mat4(1.0f);
-  view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+  glm::mat4 view = state->camera->GetViewMatrix();
 
   int windowWidth, windowHeight;
   SDL_GetWindowSizeInPixels(state->window, &windowWidth, &windowHeight);
@@ -319,6 +348,9 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   state->shader->SetUniformMatrix4fv("uView", view);
   state->shader->SetUniformMatrix4fv("uProjection", projection);
 
+  // -- Render
+  glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   // Draw a bunch of cubes
   uint32_t numCubes = sizeof(kCubePositions) / sizeof(kCubePositions[0]);
   for (uint32_t i = 0; i < numCubes; i++) {
@@ -326,7 +358,9 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     model = glm::translate(model, kCubePositions[i]);
     float angle = 20.0f * i;
     model = glm::rotate(
-      model, glm::radians(angle + (time * 50.0f)), glm::vec3(1.0f, 0.3f, 0.5f)
+      model,
+      glm::radians(angle + (currentTickSeconds * 50.0f)),
+      glm::vec3(1.0f, 0.3f, 0.5f)
     );
     state->shader->SetUniformMatrix4fv("uModel", model);
 
@@ -335,6 +369,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
   SDL_GL_SwapWindow(state->window);
 
+  state->previousTickNs = currentTickNs;
   return SDL_APP_CONTINUE;
 }
 
@@ -360,24 +395,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
       return SDL_APP_FAILURE;
     }
     glViewport(0, 0, widthInPixels, heightInPixels);
-  }
-
-  // learnopengl/textures/exercises/4: use a uniform to mix
-  if (event->type == SDL_EVENT_KEY_DOWN) {
-    switch (event->key.key) {
-      case SDLK_UP: {
-        float uMix = state->shader->GetFloat("uMix");
-        uMix = std::clamp(uMix + 0.1f, 0.0f, 1.0f);
-        state->shader->SetFloat("uMix", uMix);
-        break;
-      }
-      case SDLK_DOWN: {
-        float uMix = state->shader->GetFloat("uMix");
-        uMix = std::clamp(uMix - 0.1f, 0.0f, 1.0f);
-        state->shader->SetFloat("uMix", uMix);
-        break;
-      }
-    }
   }
 
   return SDL_APP_CONTINUE;

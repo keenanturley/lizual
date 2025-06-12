@@ -16,6 +16,8 @@ add_executable(lizual
     src/main.cpp
     src/Shader.cpp
     src/Shader.h
+    src/Camera.cpp
+    src/Camera.h
 )
 
 # Link to the actual SDL3 library.
@@ -32,6 +34,7 @@ target_link_libraries(lizual PRIVATE stb_image)
 # Dep: glm
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm EXCLUDE_FROM_ALL)
 target_link_libraries(lizual PRIVATE glm::glm)
+add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
 # Set the assets directory as a compile definition.
 target_compile_definitions(lizual PRIVATE LIZUAL_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")

@@ -35,3 +35,4 @@ These resources have helped me learn OpenGL:
 
 - [LearnOpenGL](https://learnopengl.com/)
 - [TheCherno OpenGL Playlist](https://www.youtube.com/playlist?list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2)
+- [3DGEP - Understanding the View Matrix](https://www.3dgep.com/understanding-the-view-matrix/)
