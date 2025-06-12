@@ -322,15 +322,26 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   }
   Camera& camera = *state->camera;
   // Sensitivity in degrees per second
-  float sensitivity = 20.0f;
+  const float cameraSensitivity = 40.0f;
   // XY(pitch,yaw) rotation delta in degrees
   glm::vec2 rotationDelta{
     (-1 * keys[SDL_SCANCODE_DOWN]) + keys[SDL_SCANCODE_UP],
     (-1 * keys[SDL_SCANCODE_RIGHT]) + keys[SDL_SCANCODE_LEFT]
   };
   // Apply magnitude
-  rotationDelta *= sensitivity * deltaTimeSeconds;
+  rotationDelta *= cameraSensitivity * deltaTimeSeconds;
   camera.Rotate(rotationDelta);
+
+  // Update Camera position with WASD + Q/E for down/up
+  // Units per second
+  float speed = 2.0f;
+  // XYZ direction
+  glm::vec3 positionDelta{
+    (-1 * keys[SDL_SCANCODE_A]) + keys[SDL_SCANCODE_D],
+    (-1 * keys[SDL_SCANCODE_Q]) + keys[SDL_SCANCODE_E],
+    (-1 * keys[SDL_SCANCODE_W]) + keys[SDL_SCANCODE_S],
+  };
+  camera.Move(positionDelta * speed * deltaTimeSeconds);
 
   // Time is seconds since the start of the program
   state->shader->SetFloat("uTime", currentTickSeconds);

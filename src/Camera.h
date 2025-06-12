@@ -1,3 +1,4 @@
+#include <glm/gtx/quaternion.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
@@ -11,9 +12,12 @@ class Camera {
   )
       : position(position), pitch(pitch), yaw(yaw) {};
   glm::mat4 GetViewMatrix() const;
+  glm::quat GetOrientation() const;
 
   // Update pitch and yaw by a given delta
   void Rotate(glm::vec2 deltaDegrees);
+  // Move relative to the camera's current orientation
+  void Move(glm::vec3 deltaPosition);
 
   glm::vec3 position;
   float pitch;

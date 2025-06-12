@@ -8,12 +8,14 @@ glm::mat4 Camera::GetViewMatrix() const {
   // View Matrix = inverse(view * orientation)
   glm::mat4 view = glm::identity<glm::mat4>();
   view = glm::translate(view, position);
-  glm::quat orientation{
-    glm::vec3(glm::radians(pitch), glm::radians(yaw), 0.0f)
-  };
+  glm::quat orientation = GetOrientation();
   view = view * glm::toMat4(orientation);
   view = glm::inverse(view);
   return view;
+}
+
+glm::quat Camera::GetOrientation() const {
+  return glm::quat{glm::vec3(glm::radians(pitch), glm::radians(yaw), 0.0f)};
 }
 
 void Camera::Rotate(glm::vec2 deltaDegrees) {
@@ -37,4 +39,9 @@ void Camera::Rotate(glm::vec2 deltaDegrees) {
   // control.
   yaw = glm::mod(yaw + deltaDegrees.y, 360.0f);
   SDL_Log("pitch = %f, yaw = %f", pitch, yaw);
+}
+
+void Camera::Move(glm::vec3 deltaPosition) {
+  if (deltaPosition == glm::zero<glm::vec3>()) { return; }
+  position += GetOrientation() * deltaPosition;
 }
