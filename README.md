@@ -28,6 +28,7 @@ build/Debug/lizual
 1. [SDL3](https://github.com/libsdl-org/SDL)
 1. [stb_image](https://github.com/libigl/libigl-stb/blob/master/stb_image.h)
 1. [glm](https://github.com/g-truc/glm)
+1. [imgui](https://github.com/ocornut/imgui/)
 
 ## Acknowledgements
 
