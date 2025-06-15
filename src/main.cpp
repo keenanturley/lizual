@@ -102,6 +102,7 @@ struct AppState {
   // Previous tick (Nanoseconds since SDL was initialized) that was processed by
   // the frameloop
   uint64_t previousTickNs;
+  uint64_t previousFrameTimeNs;
   SDL_GLContext glContext;
   Shader* shader;
   std::unique_ptr<Camera> camera;
@@ -315,14 +316,21 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
 
   uint64_t lastTick = SDL_GetTicksNS();
-  *appstate =
-    new AppState{window, lastTick, glContext, shader, std::move(camera)};
+  *appstate = new AppState{
+    window,
+    lastTick,
+    static_cast<uint64_t>(0),
+    glContext,
+    shader,
+    std::move(camera)
+  };
   SDL_Log("App initialization complete");
 
   return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppIterate(void* appstate) {
+  const uint64_t perfCounterStart = SDL_GetPerformanceCounter();
   AppState* state = static_cast<AppState*>(appstate);
   const uint64_t currentTickNs = SDL_GetTicksNS();
   const float currentTickSeconds =
@@ -342,33 +350,22 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   // Show a simple window that we create ourselves. We use a Begin/End pair
   // to create a named window.
   {
-    static float f = 0.0f;
-    static int counter = 0;
-
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin(
-      "Hello, world!"
+      "FPS",
+      nullptr,
+      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_NoInputs
     );  // Create a window called "Hello, world!" and append into it.
-
-    ImGui::Text(
-      "This is some useful text."
-    );  // Display some text (you can use a format strings too)
-
-    ImGui::SliderFloat(
-      "float", &f, 0.0f, 1.0f
-    );  // Edit 1 float using a slider from 0.0f to 1.0f
-
-    if (ImGui::Button("Button"))  // Buttons return true when clicked (most
-                                  // widgets return true when edited/activated)
-      counter++;
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
 
     ImGuiIO& io = ImGui::GetIO();
     ImGui::Text(
-      "Application average %.3f ms/frame (%.1f FPS)",
-      1000.0f / io.Framerate,
-      io.Framerate
+      "%.1f fps @ %.3f ms/f",
+      io.Framerate,
+      state->previousFrameTimeNs / static_cast<float>(SDL_NS_PER_MS)
     );
+
     ImGui::End();
   }
 
@@ -441,6 +438,12 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   SDL_GL_SwapWindow(state->window);
+
+  const uint64_t perfCounterEnd = SDL_GetPerformanceCounter();
+  state->previousFrameTimeNs = static_cast<uint64_t>(
+    static_cast<double>(perfCounterEnd - perfCounterStart) /
+    SDL_GetPerformanceFrequency() * SDL_NS_PER_SECOND
+  );
 
   state->previousTickNs = currentTickNs;
   return SDL_APP_CONTINUE;
