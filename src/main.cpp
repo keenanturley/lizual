@@ -3,6 +3,9 @@
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl3.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
@@ -176,6 +179,24 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   // Enable Depth testing so we don't get behind fragments drawn in front
   glEnable(GL_DEPTH_TEST);
 
+  // Set up imgui
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  static const std::filesystem::path iniPath =
+    std::filesystem::path(SDL_GetBasePath()) / "imgui.ini";
+  static const std::filesystem::path logPath =
+    std::filesystem::path(SDL_GetBasePath()) / "imgui.log";
+  io.IniFilename = iniPath.c_str();
+  io.LogFilename = logPath.c_str();
+
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplSDL3_InitForOpenGL(window, glContext);
+  ImGui_ImplOpenGL3_Init();
+
   // Create a vertex array object (VAO) for the rectangle
   GLuint vao;
   glGenVertexArrays(1, &vao);
@@ -313,6 +334,44 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   // -- Get Input
   const bool* keys = SDL_GetKeyboardState(nullptr);
 
+  // Start the Dear ImGui frame
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+
+  // Show a simple window that we create ourselves. We use a Begin/End pair
+  // to create a named window.
+  {
+    static float f = 0.0f;
+    static int counter = 0;
+
+    ImGui::Begin(
+      "Hello, world!"
+    );  // Create a window called "Hello, world!" and append into it.
+
+    ImGui::Text(
+      "This is some useful text."
+    );  // Display some text (you can use a format strings too)
+
+    ImGui::SliderFloat(
+      "float", &f, 0.0f, 1.0f
+    );  // Edit 1 float using a slider from 0.0f to 1.0f
+
+    if (ImGui::Button("Button"))  // Buttons return true when clicked (most
+                                  // widgets return true when edited/activated)
+      counter++;
+    ImGui::SameLine();
+    ImGui::Text("counter = %d", counter);
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::Text(
+      "Application average %.3f ms/frame (%.1f FPS)",
+      1000.0f / io.Framerate,
+      io.Framerate
+    );
+    ImGui::End();
+  }
+
   // -- Update state
   // Update Camera based on input
   // TODO: Refactor this into a KeyboardCameraController class or something
@@ -378,6 +437,9 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
   }
 
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
   SDL_GL_SwapWindow(state->window);
 
   state->previousTickNs = currentTickNs;
@@ -386,6 +448,8 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
   AppState* state = static_cast<AppState*>(appstate);
+
+  ImGui_ImplSDL3_ProcessEvent(event);
 
   if (event->type == SDL_EVENT_QUIT) {
     SDL_Log("Received quit event");
@@ -408,7 +472,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     glViewport(0, 0, widthInPixels, heightInPixels);
   }
 
-  if (event->type == SDL_EVENT_KEY_DOWN) {
+  if (event->type == SDL_EVENT_KEY_DOWN &&
+      !ImGui::GetIO().WantCaptureKeyboard) {
     switch (event->key.scancode) {
       case SDL_SCANCODE_ESCAPE:
         SDL_Log("Escape key pressed, quitting.");
@@ -427,6 +492,10 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result) {
   delete state->shader;
 
   SDL_Log("Exiting with result: %d", result);
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplSDL3_Shutdown();
+  ImGui::DestroyContext();
+
   SDL_GL_DestroyContext(state->glContext);
   SDL_DestroyWindow(state->window);
 
