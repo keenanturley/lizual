@@ -347,27 +347,22 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
 
-  // Show a simple window that we create ourselves. We use a Begin/End pair
-  // to create a named window.
-  {
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(0, 0));
-    ImGui::Begin(
-      "FPS",
-      nullptr,
-      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
-        ImGuiWindowFlags_NoInputs
-    );  // Create a window called "Hello, world!" and append into it.
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImGui::SetNextWindowSize(ImVec2(0, 0));
+  ImGui::Begin(
+    "FPS",
+    nullptr,
+    ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
+      ImGuiWindowFlags_NoInputs
+  );
 
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::Text(
-      "%.1f fps @ %.3f ms/f",
-      io.Framerate,
-      state->previousFrameTimeNs / static_cast<float>(SDL_NS_PER_MS)
-    );
-
-    ImGui::End();
-  }
+  ImGuiIO& io = ImGui::GetIO();
+  ImGui::Text(
+    "%.1f fps @ %.3f ms/f",
+    io.Framerate,
+    state->previousFrameTimeNs / static_cast<float>(SDL_NS_PER_MS)
+  );
+  ImGui::End();
 
   // -- Update state
   // Update Camera based on input
