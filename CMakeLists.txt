@@ -18,6 +18,8 @@ src/Renderer.h
 src/Renderer.cpp
 src/Shader.h
 src/Shader.cpp
+src/Texture.h
+src/Texture.cpp
 )
 
 # ----- Dependencies -----

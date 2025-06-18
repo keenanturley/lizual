@@ -10,6 +10,7 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_video.h>
+#include <stb_image.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -83,6 +84,10 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   const int minor = GLAD_VERSION_MINOR(version);
   SDL_Log("OpenGL version: %d.%d", major, minor);
   SDL_Log("  Full version string: %s", glGetString(GL_VERSION));
+
+  // Configure STB to always flip images, so they match OpenGL's coordinate
+  // system: (0, 0) = bottom left
+  stbi_set_flip_vertically_on_load(true);
 
   std::unique_ptr<Renderer> renderer = Renderer::Create(window, glContext);
 

@@ -6,13 +6,14 @@
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
-#include <stb_image.h>
+#include <SDL3/SDL_log.h>
 
 #include <filesystem>
 #include <fstream>
 
 #include "Camera.h"
 #include "Shader.h"
+#include "Texture.h"
 
 namespace {
 const std::filesystem::path kAssetsDir = LIZUAL_ASSETS_DIR;
@@ -170,74 +171,20 @@ std::unique_ptr<Renderer> Renderer::Create(
   );
   glEnableVertexAttribArray(1);
 
-  // Load the container texture
-  SDL_Log("Loading container texture");
-  int width, height, numChannels;
-  unsigned char* data =
-    stbi_load(kContainerTexturePath.c_str(), &width, &height, &numChannels, 0);
-  if (data == nullptr) {
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_APPLICATION,
-      "[stb_image] Failed to load texture from path %s",
-      kContainerTexturePath.c_str()
-    );
-    return nullptr;
-  }
-  SDL_Log("  Loaded container texture: %d x %d", width, height);
+  // Load textures first before binding to ensure loader doesn't trample
+  // bindings of glActiveTexture Load the container texture
+  std::unique_ptr<Texture> containerTexture =
+    Texture::Load(kContainerTexturePath);
+  std::unique_ptr<Texture> awesomeFaceTexture =
+    Texture::Load(kAwesomeFaceTexturePath);
 
-  // Create an OpenGL texture
-  GLuint textureId;
-  glGenTextures(1, &textureId);
+  // Now bind after loading
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureId);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-  );
-  glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, containerTexture->textureId);
   shader->SetInt("uTexture", 0);
-
-  // Free the image
-  stbi_image_free(data);
-
-  // Load the awesome face texture
-  SDL_Log("Loading awesome face texture");
-  // Flip vertically because it's inversed by default
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char* data2 = stbi_load(
-    kAwesomeFaceTexturePath.c_str(), &width, &height, &numChannels, 0
-  );
-  stbi_set_flip_vertically_on_load(false);
-  if (data == nullptr) {
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_APPLICATION,
-      "[stb_image] Failed to load texture from path %s",
-      kContainerTexturePath.c_str()
-    );
-    return nullptr;
-  }
-  SDL_Log("  Loaded awesome face texture: %d x %d", width, height);
-
-  // Create an OpenGL texture
-  GLuint textureId2;
-  glGenTextures(1, &textureId2);
   glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, textureId2);
-  glTexImage2D(
-    GL_TEXTURE_2D,
-    0,
-    GL_RGBA,
-    width,
-    height,
-    0,
-    GL_RGBA,
-    GL_UNSIGNED_BYTE,
-    data2
-  );
-  glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, awesomeFaceTexture->textureId);
   shader->SetInt("uTexture2", 1);
-
-  // Free the image
-  stbi_image_free(data2);
 
   // learnopengl/textures/exercises/4: use a uniform to mix
   // Initialize the mix uniform
