@@ -11,10 +11,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
 add_executable(lizual
 src/main.cpp
-src/Shader.cpp
-src/Shader.h
-src/Camera.cpp
+
 src/Camera.h
+src/Camera.cpp
+src/Renderer.h
+src/Renderer.cpp
+src/Shader.h
+src/Shader.cpp
 )
 
 # ----- Dependencies -----

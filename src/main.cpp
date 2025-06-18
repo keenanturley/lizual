@@ -2,7 +2,6 @@
 
 #include <glad/gl.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
@@ -11,90 +10,17 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_video.h>
-#include <stb_image.h>
 
 #include <algorithm>
 #include <cstdint>
-#include <filesystem>
-#include <fstream>
 #include <memory>
 
 #include "Camera.h"
-#include "Shader.h"
+#include "Renderer.h"
 
 namespace {
 constexpr int kDefaultWindowWidth = 640;
 constexpr int kDefaultWindowHeight = 480;
-const std::filesystem::path kAssetsDir = LIZUAL_ASSETS_DIR;
-const std::filesystem::path kVertexShaderPath =
-  kAssetsDir / "shaders/default.vert";
-const std::filesystem::path kFragmentShaderPath =
-  kAssetsDir / "shaders/default.frag";
-const std::filesystem::path kContainerTexturePath =
-  kAssetsDir / "textures/container.jpg";
-const std::filesystem::path kAwesomeFaceTexturePath =
-  kAssetsDir / "textures/awesomeface.png";
-
-// clang-format off
-// Vertices for a cube
-constexpr float kVertices[] = {
-  // positions          // texcoords
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-   0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
-
-constexpr glm::vec3 kCubePositions[] = {
-  glm::vec3( 0.0f,  0.0f,  0.0f), 
-  glm::vec3( 2.0f,  5.0f, -15.0f), 
-  glm::vec3(-1.5f, -2.2f, -2.5f),  
-  glm::vec3(-3.8f, -2.0f, -12.3f),  
-  glm::vec3( 2.4f, -0.4f, -3.5f),  
-  glm::vec3(-1.7f,  3.0f, -7.5f),  
-  glm::vec3( 1.3f, -2.0f, -2.5f),  
-  glm::vec3( 1.5f,  2.0f, -2.5f), 
-  glm::vec3( 1.5f,  0.2f, -1.5f), 
-  glm::vec3(-1.3f,  1.0f, -1.5f)  
-};
-// clang-format on
 }  // namespace
 
 struct AppState {
@@ -104,8 +30,8 @@ struct AppState {
   uint64_t previousTickNs;
   uint64_t previousFrameTimeNs;
   SDL_GLContext glContext;
-  Shader* shader;
   std::unique_ptr<Camera> camera;
+  std::unique_ptr<Renderer> renderer;
 };
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
@@ -135,9 +61,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   );
   if (window == nullptr) {
     SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR,
-      "SDL_CreateWindowAndRenderer failed: %s",
-      SDL_GetError()
+      SDL_LOG_CATEGORY_ERROR, "SDL_CreateWindow failed: %s", SDL_GetError()
     );
     return SDL_APP_FAILURE;
   }
@@ -160,156 +84,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   SDL_Log("OpenGL version: %d.%d", major, minor);
   SDL_Log("  Full version string: %s", glGetString(GL_VERSION));
 
-  // Set the default viewport size
-  int widthInPixels;
-  int heightInPixels;
-  if (!SDL_GetWindowSizeInPixels(window, &widthInPixels, &heightInPixels)) {
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR,
-      "SDL_GetWindowSizeInPixels failed: %s",
-      SDL_GetError()
-    );
-    return SDL_APP_FAILURE;
-  }
-  glViewport(0, 0, widthInPixels, heightInPixels);
-
-  // Enable blending so I can test transparency
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  // Enable Depth testing so we don't get behind fragments drawn in front
-  glEnable(GL_DEPTH_TEST);
-
-  // Set up imgui
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  static const std::filesystem::path iniPath =
-    std::filesystem::path(SDL_GetBasePath()) / "imgui.ini";
-  static const std::filesystem::path logPath =
-    std::filesystem::path(SDL_GetBasePath()) / "imgui.log";
-  io.IniFilename = iniPath.c_str();
-  io.LogFilename = logPath.c_str();
-
-  // Setup Dear ImGui style
-  ImGui::StyleColorsDark();
-
-  // Setup Platform/Renderer backends
-  ImGui_ImplSDL3_InitForOpenGL(window, glContext);
-  ImGui_ImplOpenGL3_Init();
-
-  // Create a vertex array object (VAO) for the rectangle
-  GLuint vao;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  // Create a vertex buffer object (VBO) for the rectangle
-  GLuint vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
-
-  // Create the shader
-  // remember to have a try catch block for handling file read exceptions
-  Shader* shader;
-  try {
-    shader = new Shader(kVertexShaderPath, kFragmentShaderPath);
-  } catch (const std::ifstream::failure& e) {
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR, "Failed to read shader file: %s", e.what()
-    );
-    return SDL_APP_FAILURE;
-  } catch (const std::runtime_error& e) {
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR, "Failed to create shader: %s", e.what()
-    );
-    return SDL_APP_FAILURE;
-  }
-  shader->Use();
-
-  // Set the vertex attribute pointers
-  int stride = 5 * sizeof(float);
-  // position
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-  glEnableVertexAttribArray(0);
-  // texture coords
-  glVertexAttribPointer(
-    1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float))
-  );
-  glEnableVertexAttribArray(1);
-
-  // Load the container texture
-  SDL_Log("Loading container texture");
-  int width, height, numChannels;
-  unsigned char* data =
-    stbi_load(kContainerTexturePath.c_str(), &width, &height, &numChannels, 0);
-  if (data == nullptr) {
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_APPLICATION,
-      "[stb_image] Failed to load texture from path %s",
-      kContainerTexturePath.c_str()
-    );
-    return SDL_APP_FAILURE;
-  }
-  SDL_Log("  Loaded container texture: %d x %d", width, height);
-
-  // Create an OpenGL texture
-  GLuint textureId;
-  glGenTextures(1, &textureId);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureId);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-  );
-  glGenerateMipmap(GL_TEXTURE_2D);
-  shader->SetInt("uTexture", 0);
-
-  // Free the image
-  stbi_image_free(data);
-
-  // Load the awesome face texture
-  SDL_Log("Loading awesome face texture");
-  // Flip vertically because it's inversed by default
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char* data2 = stbi_load(
-    kAwesomeFaceTexturePath.c_str(), &width, &height, &numChannels, 0
-  );
-  stbi_set_flip_vertically_on_load(false);
-  if (data == nullptr) {
-    SDL_LogCritical(
-      SDL_LOG_CATEGORY_APPLICATION,
-      "[stb_image] Failed to load texture from path %s",
-      kContainerTexturePath.c_str()
-    );
-    return SDL_APP_FAILURE;
-  }
-  SDL_Log("  Loaded awesome face texture: %d x %d", width, height);
-
-  // Create an OpenGL texture
-  GLuint textureId2;
-  glGenTextures(1, &textureId2);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, textureId2);
-  glTexImage2D(
-    GL_TEXTURE_2D,
-    0,
-    GL_RGBA,
-    width,
-    height,
-    0,
-    GL_RGBA,
-    GL_UNSIGNED_BYTE,
-    data2
-  );
-  glGenerateMipmap(GL_TEXTURE_2D);
-  shader->SetInt("uTexture2", 1);
-
-  // Free the image
-  stbi_image_free(data2);
-
-  // learnopengl/textures/exercises/4: use a uniform to mix
-  // Initialize the mix uniform
-  shader->SetFloat("uMix", 0.2f);
+  std::unique_ptr<Renderer> renderer = Renderer::Create(window, glContext);
 
   // Configure Camera
   std::unique_ptr camera =
@@ -321,8 +96,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     lastTick,
     static_cast<uint64_t>(0),
     glContext,
-    shader,
-    std::move(camera)
+    std::move(camera),
+    std::move(renderer)
   };
   SDL_Log("App initialization complete");
 
@@ -341,28 +116,6 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
   // -- Get Input
   const bool* keys = SDL_GetKeyboardState(nullptr);
-
-  // Start the Dear ImGui frame
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplSDL3_NewFrame();
-  ImGui::NewFrame();
-
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImGui::SetNextWindowSize(ImVec2(0, 0));
-  ImGui::Begin(
-    "FPS",
-    nullptr,
-    ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
-      ImGuiWindowFlags_NoInputs
-  );
-
-  ImGuiIO& io = ImGui::GetIO();
-  ImGui::Text(
-    "%.1f fps @ %.3f ms/f",
-    io.Framerate,
-    state->previousFrameTimeNs / static_cast<float>(SDL_NS_PER_MS)
-  );
-  ImGui::End();
 
   // -- Update state
   // Update Camera based on input
@@ -394,45 +147,10 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   };
   camera.Move(positionDelta * speed * deltaTimeSeconds);
 
-  // Time is seconds since the start of the program
-  state->shader->SetFloat("uTime", currentTickSeconds);
-
-  // Create Model-View-Projection (MVP) matrices
-  glm::mat4 model = glm::mat4(1.0f);
-  glm::mat4 view = state->camera->GetViewMatrix();
-
-  int windowWidth, windowHeight;
-  SDL_GetWindowSizeInPixels(state->window, &windowWidth, &windowHeight);
-  float windowAspectRatio = (float)windowWidth / windowHeight;
-  glm::mat4 projection =
-    glm::perspective(glm::radians(45.0f), windowAspectRatio, 0.1f, 100.0f);
-
-  state->shader->SetUniformMatrix4fv("uView", view);
-  state->shader->SetUniformMatrix4fv("uProjection", projection);
-
   // -- Render
-  glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  // Draw a bunch of cubes
-  uint32_t numCubes = sizeof(kCubePositions) / sizeof(kCubePositions[0]);
-  for (uint32_t i = 0; i < numCubes; i++) {
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, kCubePositions[i]);
-    float angle = 20.0f * i;
-    model = glm::rotate(
-      model,
-      glm::radians(angle + (currentTickSeconds * 50.0f)),
-      glm::vec3(1.0f, 0.3f, 0.5f)
-    );
-    state->shader->SetUniformMatrix4fv("uModel", model);
-
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
-  }
-
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-  SDL_GL_SwapWindow(state->window);
+  float frameTimeMs =
+    state->previousFrameTimeNs / static_cast<float>(SDL_NS_PER_MS);
+  state->renderer->RenderFrame(frameTimeMs, currentTickSeconds, camera);
 
   const uint64_t perfCounterEnd = SDL_GetPerformanceCounter();
   state->previousFrameTimeNs = static_cast<uint64_t>(
@@ -486,8 +204,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
   AppState* state = static_cast<AppState*>(appstate);
-
-  delete state->shader;
 
   SDL_Log("Exiting with result: %d", result);
   ImGui_ImplOpenGL3_Shutdown();
