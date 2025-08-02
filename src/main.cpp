@@ -184,10 +184,10 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
-  static const std::filesystem::path iniPath =
-    std::filesystem::path(SDL_GetBasePath()) / "imgui.ini";
-  static const std::filesystem::path logPath =
-    std::filesystem::path(SDL_GetBasePath()) / "imgui.log";
+  static const std::string iniPath =
+    (std::filesystem::path(SDL_GetBasePath()) / "imgui.ini").string();
+  static const std::string logPath =
+    (std::filesystem::path(SDL_GetBasePath()) / "imgui.log").string();
   io.IniFilename = iniPath.c_str();
   io.LogFilename = logPath.c_str();
 
@@ -241,8 +241,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   // Load the container texture
   SDL_Log("Loading container texture");
   int width, height, numChannels;
-  unsigned char* data =
-    stbi_load(kContainerTexturePath.c_str(), &width, &height, &numChannels, 0);
+  unsigned char* data = stbi_load(
+    kContainerTexturePath.string().c_str(), &width, &height, &numChannels, 0
+  );
   if (data == nullptr) {
     SDL_LogCritical(
       SDL_LOG_CATEGORY_APPLICATION,
@@ -272,14 +273,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   // Flip vertically because it's inversed by default
   stbi_set_flip_vertically_on_load(true);
   unsigned char* data2 = stbi_load(
-    kAwesomeFaceTexturePath.c_str(), &width, &height, &numChannels, 0
+    kAwesomeFaceTexturePath.string().c_str(), &width, &height, &numChannels, 0
   );
   stbi_set_flip_vertically_on_load(false);
   if (data == nullptr) {
     SDL_LogCritical(
       SDL_LOG_CATEGORY_APPLICATION,
       "[stb_image] Failed to load texture from path %s",
-      kContainerTexturePath.c_str()
+      kContainerTexturePath.string().c_str()
     );
     return SDL_APP_FAILURE;
   }
