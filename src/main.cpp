@@ -20,12 +20,14 @@
 #include <memory>
 
 #include "Camera.h"
+#include "config.h"
 #include "Shader.h"
 
 namespace {
 constexpr int kDefaultWindowWidth = 640;
 constexpr int kDefaultWindowHeight = 480;
 const std::filesystem::path kAssetsDir = LIZUAL_ASSETS_DIR;
+const std::filesystem::path kConfigPath = kAssetsDir / "config.txt";
 const std::filesystem::path kVertexShaderPath =
   kAssetsDir / "shaders/default.vert";
 const std::filesystem::path kFragmentShaderPath =
@@ -118,8 +120,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   }
   SDL_Log("SDL initialized successfully");
 
+  // Load config
+  load_config_from_file(kConfigPath);
+
   // Limit FPS temporarily so my laptop doesn't burn my legs
-  SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, "60");
+  SDL_SetHint(
+    SDL_HINT_MAIN_CALLBACK_RATE, std::to_string(config::update_rate).c_str()
+  );
 
   // Set OpenGL version attributes, necessary for MacOSX, otherwise it will
   // default to OpenGL 2.1 and segfault on use of functions not available in 2.1

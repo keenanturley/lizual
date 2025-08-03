@@ -11,6 +11,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
 add_executable(lizual
 src/main.cpp
+src/config.cpp
+src/config.h
 src/Shader.cpp
 src/Shader.h
 src/Camera.cpp
