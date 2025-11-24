@@ -268,7 +268,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(0);
   // normal
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+  glVertexAttribPointer(
+    1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float))
+  );
   glEnableVertexAttribArray(1);
 
   // Create VAO for light cube
