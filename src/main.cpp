@@ -46,48 +46,48 @@ const std::filesystem::path kAwesomeFaceTexturePath =
 // clang-format off
 // Vertices for a cube
 constexpr float kVertices[] = {
-  // positions          
-  -0.5f, -0.5f, -0.5f,
-   0.5f, -0.5f, -0.5f,
-   0.5f,  0.5f, -0.5f,
-   0.5f,  0.5f, -0.5f,
-  -0.5f,  0.5f, -0.5f,
-  -0.5f, -0.5f, -0.5f,
+  // positions          // normal
+  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+   0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+   0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+   0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+  -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-  -0.5f, -0.5f,  0.5f,
-   0.5f, -0.5f,  0.5f,
-   0.5f,  0.5f,  0.5f,
-   0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f,  0.5f,
-  -0.5f, -0.5f,  0.5f,
+  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+   0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
 
-  -0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f, -0.5f,
-  -0.5f, -0.5f, -0.5f,
-  -0.5f, -0.5f, -0.5f,
-  -0.5f, -0.5f,  0.5f,
-  -0.5f,  0.5f,  0.5f,
+  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-   0.5f,  0.5f,  0.5f,
-   0.5f,  0.5f, -0.5f,
-   0.5f, -0.5f, -0.5f,
-   0.5f, -0.5f, -0.5f,
-   0.5f, -0.5f,  0.5f,
-   0.5f,  0.5f,  0.5f,
+   0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+   0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+   0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+   0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+   0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+   0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-  -0.5f, -0.5f, -0.5f,
-   0.5f, -0.5f, -0.5f,
-   0.5f, -0.5f,  0.5f,
-   0.5f, -0.5f,  0.5f,
-  -0.5f, -0.5f,  0.5f,
-  -0.5f, -0.5f, -0.5f,
+  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+   0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+   0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+   0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-  -0.5f,  0.5f, -0.5f,
-   0.5f,  0.5f, -0.5f,
-   0.5f,  0.5f,  0.5f,
-   0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f, -0.5f,
+  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+   0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
 constexpr glm::vec3 kCubePositions[] = {
@@ -263,10 +263,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   }
 
   // Set the vertex attribute pointers
-  int stride = 3 * sizeof(float);
+  int stride = 6 * sizeof(float);
   // position
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(0);
+  // normal
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+  glEnableVertexAttribArray(1);
 
   // Create VAO for light cube
   GLuint lightVao;
@@ -275,7 +278,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
 
   // Use the same vbo as the cube
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(0);
 
   // Load the container texture
@@ -449,9 +452,16 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   state->cubeShaderProgram->Use();
   glBindVertexArray(state->cubeVao);
 
-  // Set uniform colors for lighting
+  // Set uniforms for lighting
   state->cubeShaderProgram->SetUniform3f("uObjectColor", 1.0f, 0.5f, 0.31f);
   state->cubeShaderProgram->SetUniform3f("uLightColor", 1.0f, 1.0f, 1.0f);
+  state->cubeShaderProgram->SetUniform3f(
+    "uLightPos", kLightPosition.x, kLightPosition.y, kLightPosition.z
+  );
+  glm::vec3* viewPos = &state->camera->position;
+  state->cubeShaderProgram->SetUniform3f(
+    "uViewPos", viewPos->x, viewPos->y, viewPos->z
+  );
 
   // Create Model-View-Projection (MVP) matrices
   glm::mat4 model = glm::mat4(1.0f);
