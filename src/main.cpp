@@ -21,7 +21,7 @@
 
 #include "Camera.h"
 #include "config.h"
-#include "Shader.h"
+#include "ShaderProgram.h"
 
 namespace {
 constexpr int kDefaultWindowWidth = 640;
@@ -106,7 +106,7 @@ struct AppState {
   uint64_t previousTickNs;
   uint64_t previousFrameTimeNs;
   SDL_GLContext glContext;
-  Shader* shader;
+  ShaderProgram* shaderProgram;
   std::unique_ptr<Camera> camera;
 };
 
@@ -216,11 +216,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
 
-  // Create the shader
+  // Create the shader program
   // remember to have a try catch block for handling file read exceptions
-  Shader* shader;
+  ShaderProgram* shaderProgram;
   try {
-    shader = new Shader(kVertexShaderPath, kFragmentShaderPath);
+    shaderProgram = new ShaderProgram(kVertexShaderPath, kFragmentShaderPath);
   } catch (const std::ifstream::failure& e) {
     SDL_LogCritical(
       SDL_LOG_CATEGORY_ERROR, "Failed to read shader file: %s", e.what()
@@ -228,11 +228,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     return SDL_APP_FAILURE;
   } catch (const std::runtime_error& e) {
     SDL_LogCritical(
-      SDL_LOG_CATEGORY_ERROR, "Failed to create shader: %s", e.what()
+      SDL_LOG_CATEGORY_ERROR, "Failed to create shader program: %s", e.what()
     );
     return SDL_APP_FAILURE;
   }
-  shader->Use();
+  shaderProgram->Use();
 
   // Set the vertex attribute pointers
   int stride = 5 * sizeof(float);
@@ -270,7 +270,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
   );
   glGenerateMipmap(GL_TEXTURE_2D);
-  shader->SetInt("uTexture", 0);
+  shaderProgram->SetInt("uTexture", 0);
 
   // Free the image
   stbi_image_free(data);
@@ -310,14 +310,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     data2
   );
   glGenerateMipmap(GL_TEXTURE_2D);
-  shader->SetInt("uTexture2", 1);
+  shaderProgram->SetInt("uTexture2", 1);
 
   // Free the image
   stbi_image_free(data2);
 
   // learnopengl/textures/exercises/4: use a uniform to mix
   // Initialize the mix uniform
-  shader->SetFloat("uMix", 0.2f);
+  shaderProgram->SetFloat("uMix", 0.2f);
 
   // Configure Camera
   std::unique_ptr camera =
@@ -329,7 +329,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     lastTick,
     static_cast<uint64_t>(0),
     glContext,
-    shader,
+    shaderProgram,
     std::move(camera)
   };
   SDL_Log("App initialization complete");
@@ -408,7 +408,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   camera.Move(positionDelta * speed * deltaTimeSeconds);
 
   // Time is seconds since the start of the program
-  state->shader->SetFloat("uTime", currentTickSeconds);
+  state->shaderProgram->SetFloat("uTime", currentTickSeconds);
 
   // Create Model-View-Projection (MVP) matrices
   glm::mat4 model = glm::mat4(1.0f);
@@ -420,8 +420,8 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   glm::mat4 projection =
     glm::perspective(glm::radians(45.0f), windowAspectRatio, 0.1f, 100.0f);
 
-  state->shader->SetUniformMatrix4fv("uView", view);
-  state->shader->SetUniformMatrix4fv("uProjection", projection);
+  state->shaderProgram->SetUniformMatrix4fv("uView", view);
+  state->shaderProgram->SetUniformMatrix4fv("uProjection", projection);
 
   // -- Render
   glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
@@ -437,7 +437,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
       glm::radians(angle + (currentTickSeconds * 50.0f)),
       glm::vec3(1.0f, 0.3f, 0.5f)
     );
-    state->shader->SetUniformMatrix4fv("uModel", model);
+    state->shaderProgram->SetUniformMatrix4fv("uModel", model);
 
     glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
   }
@@ -500,7 +500,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
   AppState* state = static_cast<AppState*>(appstate);
 
-  delete state->shader;
+  delete state->shaderProgram;
 
   SDL_Log("Exiting with result: %d", result);
   ImGui_ImplOpenGL3_Shutdown();

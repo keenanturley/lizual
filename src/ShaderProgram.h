@@ -6,9 +6,9 @@
 #include <filesystem>
 #include <string>
 
-class Shader {
+class ShaderProgram {
  public:
-  Shader(
+  ShaderProgram(
     const std::filesystem::path& vertexShaderPath,
     const std::filesystem::path& fragmentShaderPath
   );

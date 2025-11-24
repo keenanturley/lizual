@@ -13,8 +13,8 @@ add_executable(lizual
 src/main.cpp
 src/config.cpp
 src/config.h
-src/Shader.cpp
-src/Shader.h
+src/ShaderProgram.cpp
+src/ShaderProgram.h
 src/Camera.cpp
 src/Camera.h
 )

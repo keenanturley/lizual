@@ -1,4 +1,4 @@
-#include "Shader.h"
+#include "ShaderProgram.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <SDL3/SDL_log.h>
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sstream>
 
-Shader::Shader(
+ShaderProgram::ShaderProgram(
   const std::filesystem::path& vertexShaderPath,
   const std::filesystem::path& fragmentShaderPath
 ) {
@@ -80,17 +80,17 @@ Shader::Shader(
   glDeleteShader(fragmentShader);
 }
 
-void Shader::Use() { glUseProgram(shaderProgram_); }
+void ShaderProgram::Use() { glUseProgram(shaderProgram_); }
 
-void Shader::SetBool(const std::string& name, bool value) const {
+void ShaderProgram::SetBool(const std::string& name, bool value) const {
   glUniform1i(glGetUniformLocation(shaderProgram_, name.c_str()), (int)value);
 }
 
-void Shader::SetInt(const std::string& name, int value) const {
+void ShaderProgram::SetInt(const std::string& name, int value) const {
   glUniform1i(glGetUniformLocation(shaderProgram_, name.c_str()), value);
 }
 
-float Shader::GetFloat(const std::string& name) const {
+float ShaderProgram::GetFloat(const std::string& name) const {
   GLint location = glGetUniformLocation(shaderProgram_, name.c_str());
   if (location == -1) {
     throw std::runtime_error(std::format("GL: Uniform {} not found", name));
@@ -100,11 +100,11 @@ float Shader::GetFloat(const std::string& name) const {
   return value;
 }
 
-void Shader::SetFloat(const std::string& name, float value) const {
+void ShaderProgram::SetFloat(const std::string& name, float value) const {
   glUniform1f(glGetUniformLocation(shaderProgram_, name.c_str()), value);
 }
 
-void Shader::SetUniform4f(
+void ShaderProgram::SetUniform4f(
   const std::string& name, float v0, float v1, float v2, float v3
 ) const {
   glUniform4f(
@@ -112,7 +112,7 @@ void Shader::SetUniform4f(
   );
 }
 
-void Shader::SetUniformMatrix4fv(
+void ShaderProgram::SetUniformMatrix4fv(
   const std::string& name, const glm::mat4& value
 ) {
   glUniformMatrix4fv(
