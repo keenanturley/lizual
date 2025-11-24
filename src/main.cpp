@@ -28,10 +28,16 @@ constexpr int kDefaultWindowWidth = 640;
 constexpr int kDefaultWindowHeight = 480;
 const std::filesystem::path kAssetsDir = LIZUAL_ASSETS_DIR;
 const std::filesystem::path kConfigPath = kAssetsDir / "config.txt";
-const std::filesystem::path kVertexShaderPath =
+const std::filesystem::path kDefaultVertexShaderPath =
   kAssetsDir / "shaders/default.vert";
-const std::filesystem::path kFragmentShaderPath =
+const std::filesystem::path kDefaultFragmentShaderPath =
   kAssetsDir / "shaders/default.frag";
+const std::filesystem::path kLightingVertexShaderPath =
+  kAssetsDir / "shaders/lighting.vert";
+const std::filesystem::path kLightingFragmentShaderPath =
+  kAssetsDir / "shaders/lighting.frag";
+const std::filesystem::path kLightFragmentShaderPath =
+  kAssetsDir / "shaders/lighting-light.frag";
 const std::filesystem::path kContainerTexturePath =
   kAssetsDir / "textures/container.jpg";
 const std::filesystem::path kAwesomeFaceTexturePath =
@@ -40,48 +46,48 @@ const std::filesystem::path kAwesomeFaceTexturePath =
 // clang-format off
 // Vertices for a cube
 constexpr float kVertices[] = {
-  // positions          // texcoords
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-   0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+  // positions          
+  -0.5f, -0.5f, -0.5f,
+   0.5f, -0.5f, -0.5f,
+   0.5f,  0.5f, -0.5f,
+   0.5f,  0.5f, -0.5f,
+  -0.5f,  0.5f, -0.5f,
+  -0.5f, -0.5f, -0.5f,
 
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+  -0.5f, -0.5f,  0.5f,
+   0.5f, -0.5f,  0.5f,
+   0.5f,  0.5f,  0.5f,
+   0.5f,  0.5f,  0.5f,
+  -0.5f,  0.5f,  0.5f,
+  -0.5f, -0.5f,  0.5f,
 
-  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+  -0.5f,  0.5f,  0.5f,
+  -0.5f,  0.5f, -0.5f,
+  -0.5f, -0.5f, -0.5f,
+  -0.5f, -0.5f, -0.5f,
+  -0.5f, -0.5f,  0.5f,
+  -0.5f,  0.5f,  0.5f,
 
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+   0.5f,  0.5f,  0.5f,
+   0.5f,  0.5f, -0.5f,
+   0.5f, -0.5f, -0.5f,
+   0.5f, -0.5f, -0.5f,
+   0.5f, -0.5f,  0.5f,
+   0.5f,  0.5f,  0.5f,
 
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f,
+   0.5f, -0.5f, -0.5f,
+   0.5f, -0.5f,  0.5f,
+   0.5f, -0.5f,  0.5f,
+  -0.5f, -0.5f,  0.5f,
+  -0.5f, -0.5f, -0.5f,
 
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+  -0.5f,  0.5f, -0.5f,
+   0.5f,  0.5f, -0.5f,
+   0.5f,  0.5f,  0.5f,
+   0.5f,  0.5f,  0.5f,
+  -0.5f,  0.5f,  0.5f,
+  -0.5f,  0.5f, -0.5f,
 };
 
 constexpr glm::vec3 kCubePositions[] = {
@@ -96,6 +102,8 @@ constexpr glm::vec3 kCubePositions[] = {
   glm::vec3( 1.5f,  0.2f, -1.5f), 
   glm::vec3(-1.3f,  1.0f, -1.5f)  
 };
+
+constexpr glm::vec3 kLightPosition(1.2f, 1.0f, 2.0f);
 // clang-format on
 }  // namespace
 
@@ -106,7 +114,10 @@ struct AppState {
   uint64_t previousTickNs;
   uint64_t previousFrameTimeNs;
   SDL_GLContext glContext;
-  ShaderProgram* shaderProgram;
+  ShaderProgram* cubeShaderProgram;
+  ShaderProgram* lightShaderProgram;
+  GLuint cubeVao;
+  GLuint lightVao;
   std::unique_ptr<Camera> camera;
 };
 
@@ -206,9 +217,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   ImGui_ImplOpenGL3_Init();
 
   // Create a vertex array object (VAO) for the rectangle
-  GLuint vao;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
+  GLuint cubeVao;
+  glGenVertexArrays(1, &cubeVao);
+  glBindVertexArray(cubeVao);
 
   // Create a vertex buffer object (VBO) for the rectangle
   GLuint vbo;
@@ -216,11 +227,12 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
 
-  // Create the shader program
+  // Create the shader program for the cube
   // remember to have a try catch block for handling file read exceptions
-  ShaderProgram* shaderProgram;
+  ShaderProgram* cubeShaderProgram;
   try {
-    shaderProgram = new ShaderProgram(kVertexShaderPath, kFragmentShaderPath);
+    cubeShaderProgram =
+      new ShaderProgram(kLightingVertexShaderPath, kLightingFragmentShaderPath);
   } catch (const std::ifstream::failure& e) {
     SDL_LogCritical(
       SDL_LOG_CATEGORY_ERROR, "Failed to read shader file: %s", e.what()
@@ -232,18 +244,39 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     );
     return SDL_APP_FAILURE;
   }
-  shaderProgram->Use();
+
+  // Create shader program for the light
+  ShaderProgram* lightShaderProgram;
+  try {
+    lightShaderProgram =
+      new ShaderProgram(kLightingVertexShaderPath, kLightFragmentShaderPath);
+  } catch (const std::ifstream::failure& e) {
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR, "Failed to read shader file: %s", e.what()
+    );
+    return SDL_APP_FAILURE;
+  } catch (const std::runtime_error& e) {
+    SDL_LogCritical(
+      SDL_LOG_CATEGORY_ERROR, "Failed to create shader program: %s", e.what()
+    );
+    return SDL_APP_FAILURE;
+  }
 
   // Set the vertex attribute pointers
-  int stride = 5 * sizeof(float);
+  int stride = 3 * sizeof(float);
   // position
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(0);
-  // texture coords
-  glVertexAttribPointer(
-    1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float))
-  );
-  glEnableVertexAttribArray(1);
+
+  // Create VAO for light cube
+  GLuint lightVao;
+  glGenVertexArrays(1, &lightVao);
+  glBindVertexArray(lightVao);
+
+  // Use the same vbo as the cube
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
 
   // Load the container texture
   SDL_Log("Loading container texture");
@@ -270,7 +303,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
   );
   glGenerateMipmap(GL_TEXTURE_2D);
-  shaderProgram->SetInt("uTexture", 0);
+  cubeShaderProgram->SetInt("uTexture", 0);
 
   // Free the image
   stbi_image_free(data);
@@ -310,14 +343,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     data2
   );
   glGenerateMipmap(GL_TEXTURE_2D);
-  shaderProgram->SetInt("uTexture2", 1);
+  cubeShaderProgram->SetInt("uTexture2", 1);
 
   // Free the image
   stbi_image_free(data2);
 
   // learnopengl/textures/exercises/4: use a uniform to mix
   // Initialize the mix uniform
-  shaderProgram->SetFloat("uMix", 0.2f);
+  cubeShaderProgram->SetFloat("uMix", 0.2f);
 
   // Configure Camera
   std::unique_ptr camera =
@@ -329,7 +362,10 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     lastTick,
     static_cast<uint64_t>(0),
     glContext,
-    shaderProgram,
+    cubeShaderProgram,
+    lightShaderProgram,
+    cubeVao,
+    lightVao,
     std::move(camera)
   };
   SDL_Log("App initialization complete");
@@ -408,7 +444,14 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   camera.Move(positionDelta * speed * deltaTimeSeconds);
 
   // Time is seconds since the start of the program
-  state->shaderProgram->SetFloat("uTime", currentTickSeconds);
+  // state->cubeShaderProgram->SetFloat("uTime", currentTickSeconds);
+
+  state->cubeShaderProgram->Use();
+  glBindVertexArray(state->cubeVao);
+
+  // Set uniform colors for lighting
+  state->cubeShaderProgram->SetUniform3f("uObjectColor", 1.0f, 0.5f, 0.31f);
+  state->cubeShaderProgram->SetUniform3f("uLightColor", 1.0f, 1.0f, 1.0f);
 
   // Create Model-View-Projection (MVP) matrices
   glm::mat4 model = glm::mat4(1.0f);
@@ -420,11 +463,11 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   glm::mat4 projection =
     glm::perspective(glm::radians(45.0f), windowAspectRatio, 0.1f, 100.0f);
 
-  state->shaderProgram->SetUniformMatrix4fv("uView", view);
-  state->shaderProgram->SetUniformMatrix4fv("uProjection", projection);
+  state->cubeShaderProgram->SetUniformMatrix4fv("uView", view);
+  state->cubeShaderProgram->SetUniformMatrix4fv("uProjection", projection);
 
   // -- Render
-  glClearColor(0.75f, 0.75f, 1.0f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   // Draw a bunch of cubes
   uint32_t numCubes = sizeof(kCubePositions) / sizeof(kCubePositions[0]);
@@ -437,10 +480,21 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
       glm::radians(angle + (currentTickSeconds * 50.0f)),
       glm::vec3(1.0f, 0.3f, 0.5f)
     );
-    state->shaderProgram->SetUniformMatrix4fv("uModel", model);
+    state->cubeShaderProgram->SetUniformMatrix4fv("uModel", model);
 
     glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
   }
+
+  // Draw light cube
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, kLightPosition);
+  model = glm::scale((model), glm::vec3(0.2f));
+  state->lightShaderProgram->Use();
+  state->lightShaderProgram->SetUniformMatrix4fv("uView", view);
+  state->lightShaderProgram->SetUniformMatrix4fv("uProjection", projection);
+  state->lightShaderProgram->SetUniformMatrix4fv("uModel", model);
+  glBindVertexArray(state->lightVao);
+  glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
 
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -500,7 +554,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
   AppState* state = static_cast<AppState*>(appstate);
 
-  delete state->shaderProgram;
+  delete state->cubeShaderProgram;
+  delete state->lightShaderProgram;
 
   SDL_Log("Exiting with result: %d", result);
   ImGui_ImplOpenGL3_Shutdown();
