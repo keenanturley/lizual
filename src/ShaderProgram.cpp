@@ -110,6 +110,17 @@ void ShaderProgram::SetUniform3f(
   glUniform3f(glGetUniformLocation(shaderProgram_, name.c_str()), v0, v1, v2);
 }
 
+void ShaderProgram::SetUniform3f(
+  const std::string& name, const glm::vec3& value
+) {
+  glUniform3f(
+    glGetUniformLocation(shaderProgram_, name.c_str()),
+    value.x,
+    value.y,
+    value.z
+  );
+}
+
 void ShaderProgram::SetUniform4f(
   const std::string& name, float v0, float v1, float v2, float v3
 ) const {

@@ -103,6 +103,96 @@ constexpr glm::vec3 kCubePositions[] = {
   glm::vec3(-1.3f,  1.0f, -1.5f)  
 };
 
+struct Material {
+  glm::vec3 ambient;
+  glm::vec3 diffuse;
+  glm::vec3 specular;
+  float shininess;
+};
+
+constexpr Material kMaterials[] = {
+  // Emerald
+  {
+    .ambient   = glm::vec3(0.0215f,  0.1745f,   0.0215f),
+    .diffuse   = glm::vec3(0.07568f, 0.61424f,  0.07568f),
+    .specular  = glm::vec3(0.633f,   0.727811f, 0.633f),
+    .shininess = 0.6f
+  },
+
+  // Jade
+  {
+    .ambient   = glm::vec3(0.135f,    0.2225f,   0.1575f),
+    .diffuse   = glm::vec3(0.54f,     0.89f,     0.63f),
+    .specular  = glm::vec3(0.316228f, 0.316228f, 0.316228f),
+    .shininess = 0.1f
+  },
+
+  // Obsidian
+  {
+    .ambient   = glm::vec3(0.05375f,  0.05f,     0.06625f),
+    .diffuse   = glm::vec3(0.18275f,  0.17f,     0.22525f),
+    .specular  = glm::vec3(0.332741f, 0.328634f, 0.346435f),
+    .shininess = 0.3f
+  },
+
+  // Pearl
+  {
+    .ambient   = glm::vec3(0.25f,     0.20725f,  0.20725f),
+    .diffuse   = glm::vec3(1.f,       0.829f,    0.829f),
+    .specular  = glm::vec3(0.296648f, 0.296648f, 0.296648f),
+    .shininess = 0.088f
+  },
+
+  // Ruby
+  {
+    .ambient   = glm::vec3(0.1745f,   0.01175f,  0.01175f),
+    .diffuse   = glm::vec3(0.61424f,  0.04136f,  0.04136f),
+    .specular  = glm::vec3(0.727811f, 0.626959f, 0.626959f),
+    .shininess = 0.6f
+  },
+
+  // Turquoise
+  {
+    .ambient   = glm::vec3(0.1f,      0.18725f, 0.1745f),
+    .diffuse   = glm::vec3(0.396f,    0.74151f, 0.69102f),
+    .specular  = glm::vec3(0.297254f, 0.30829f, 0.306678f),
+    .shininess = 0.1f
+  },
+
+  // Brass
+  {
+    .ambient   = glm::vec3(0.329412f, 0.223529f, 0.027451f),
+    .diffuse   = glm::vec3(0.780392f, 0.568627f, 0.113725f),
+    .specular  = glm::vec3(0.992157f, 0.941176f, 0.807843f),
+    .shininess = 0.21794872f
+  },
+
+  // Bronze
+  {
+    .ambient   = glm::vec3(0.2125f,   0.1275f,   0.054f),
+    .diffuse   = glm::vec3(0.714f,    0.4284f,   0.18144f),
+    .specular  = glm::vec3(0.393548f, 0.271906f, 0.166721f),
+    .shininess = 0.2f
+  },
+
+  // Chrome
+  {
+    .ambient   = glm::vec3(0.25f,     0.25f,     0.25f),
+    .diffuse   = glm::vec3(0.4f,      0.4f,      0.4f),
+    .specular  = glm::vec3(0.774597f, 0.774597f, 0.774597f),
+    .shininess = 0.6f
+  },
+
+  // Copper
+  {
+    .ambient   = glm::vec3(0.19125f,  0.0735f,   0.0225f),
+    .diffuse   = glm::vec3(0.7038f,   0.27048f,  0.0828f),
+    .specular  = glm::vec3(0.256777f, 0.137622f, 0.086014f),
+    .shininess = 0.1f
+  },
+};
+
+
 constexpr glm::vec3 kLightPosition(1.2f, 1.0f, 2.0f);
 // clang-format on
 }  // namespace
@@ -455,15 +545,11 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   glBindVertexArray(state->cubeVao);
 
   // Set uniforms for lighting
-  state->cubeShaderProgram->SetUniform3f("uObjectColor", 1.0f, 0.5f, 0.31f);
-  state->cubeShaderProgram->SetUniform3f("uLightColor", 1.0f, 1.0f, 1.0f);
-  state->cubeShaderProgram->SetUniform3f(
-    "uLightPos", kLightPosition.x, kLightPosition.y, kLightPosition.z
-  );
-  glm::vec3* viewPos = &state->camera->position;
-  state->cubeShaderProgram->SetUniform3f(
-    "uViewPos", viewPos->x, viewPos->y, viewPos->z
-  );
+  state->cubeShaderProgram->SetUniform3f("uLight.position", kLightPosition);
+  state->cubeShaderProgram->SetUniform3f("uLight.ambient", 0.2f, 0.2f, 0.2f);
+  state->cubeShaderProgram->SetUniform3f("uLight.diffuse", 0.5f, 0.5f, 0.5f);
+  state->cubeShaderProgram->SetUniform3f("uLight.specular", 1.0f, 1.0f, 1.0f);
+  state->cubeShaderProgram->SetUniform3f("uViewPos", state->camera->position);
 
   // Create Model-View-Projection (MVP) matrices
   glm::mat4 model = glm::mat4(1.0f);
@@ -481,6 +567,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   // -- Render
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   // Draw a bunch of cubes
   uint32_t numCubes = sizeof(kCubePositions) / sizeof(kCubePositions[0]);
   for (uint32_t i = 0; i < numCubes; i++) {
@@ -493,6 +580,19 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
       glm::vec3(1.0f, 0.3f, 0.5f)
     );
     state->cubeShaderProgram->SetUniformMatrix4fv("uModel", model);
+
+    state->cubeShaderProgram->SetUniform3f(
+      "uMaterial.ambient", kMaterials[i].ambient
+    );
+    state->cubeShaderProgram->SetUniform3f(
+      "uMaterial.diffuse", kMaterials[i].diffuse
+    );
+    state->cubeShaderProgram->SetUniform3f(
+      "uMaterial.specular", kMaterials[i].specular
+    );
+    state->cubeShaderProgram->SetFloat(
+      "uMaterial.shininess", kMaterials[i].shininess
+    );
 
     glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
   }
