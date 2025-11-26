@@ -68,7 +68,7 @@ void load_config_from_file(const std::filesystem::path& path) {
         SDL_Log(
           "config: Invalid value (%s) for field (%s) in config file: %s",
           value,
-          std::string(line + field_start, field_length),
+          std::string(line + field_start, field_length).c_str(),
           path.string().c_str()
         );
         continue;
@@ -76,7 +76,7 @@ void load_config_from_file(const std::filesystem::path& path) {
     } else {
       SDL_Log(
         "config: Found invalid field name (%s) in config file: %s",
-        std::string(line + field_start, field_length),
+        std::string(line + field_start, field_length).c_str(),
         path.string().c_str()
       );
     }
