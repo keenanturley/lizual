@@ -39,55 +39,57 @@ const std::filesystem::path kLightingFragmentShaderPath =
 const std::filesystem::path kLightFragmentShaderPath =
   kAssetsDir / "shaders/lighting-light.frag";
 const std::filesystem::path kContainerTexturePath =
-  kAssetsDir / "textures/container.jpg";
+  kAssetsDir / "textures/container2.png";
+const std::filesystem::path kContainerSpecularTexturePath =
+  kAssetsDir / "textures/container2_specular.png";
 const std::filesystem::path kAwesomeFaceTexturePath =
   kAssetsDir / "textures/awesomeface.png";
 
 // clang-format off
 // Vertices for a cube
 constexpr float kVertices[] = {
-  // positions          // normal
-  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-   0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-   0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-   0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-  -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+  // positions          // normals           // texture coords
+  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+   0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+   0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+   0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+  -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-   0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-   0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-   0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+   0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-  -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-  -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+  -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+  -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-   0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-   0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-   0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-   0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-   0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+   0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+   0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+   0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+   0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+   0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+   0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-   0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-   0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-   0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+   0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+   0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+   0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-   0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+   0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+   0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 };
 
 constexpr glm::vec3 kCubePositions[] = {
@@ -102,96 +104,6 @@ constexpr glm::vec3 kCubePositions[] = {
   glm::vec3( 1.5f,  0.2f, -1.5f), 
   glm::vec3(-1.3f,  1.0f, -1.5f)  
 };
-
-struct Material {
-  glm::vec3 ambient;
-  glm::vec3 diffuse;
-  glm::vec3 specular;
-  float shininess;
-};
-
-constexpr Material kMaterials[] = {
-  // Emerald
-  {
-    .ambient   = glm::vec3(0.0215f,  0.1745f,   0.0215f),
-    .diffuse   = glm::vec3(0.07568f, 0.61424f,  0.07568f),
-    .specular  = glm::vec3(0.633f,   0.727811f, 0.633f),
-    .shininess = 0.6f
-  },
-
-  // Jade
-  {
-    .ambient   = glm::vec3(0.135f,    0.2225f,   0.1575f),
-    .diffuse   = glm::vec3(0.54f,     0.89f,     0.63f),
-    .specular  = glm::vec3(0.316228f, 0.316228f, 0.316228f),
-    .shininess = 0.1f
-  },
-
-  // Obsidian
-  {
-    .ambient   = glm::vec3(0.05375f,  0.05f,     0.06625f),
-    .diffuse   = glm::vec3(0.18275f,  0.17f,     0.22525f),
-    .specular  = glm::vec3(0.332741f, 0.328634f, 0.346435f),
-    .shininess = 0.3f
-  },
-
-  // Pearl
-  {
-    .ambient   = glm::vec3(0.25f,     0.20725f,  0.20725f),
-    .diffuse   = glm::vec3(1.f,       0.829f,    0.829f),
-    .specular  = glm::vec3(0.296648f, 0.296648f, 0.296648f),
-    .shininess = 0.088f
-  },
-
-  // Ruby
-  {
-    .ambient   = glm::vec3(0.1745f,   0.01175f,  0.01175f),
-    .diffuse   = glm::vec3(0.61424f,  0.04136f,  0.04136f),
-    .specular  = glm::vec3(0.727811f, 0.626959f, 0.626959f),
-    .shininess = 0.6f
-  },
-
-  // Turquoise
-  {
-    .ambient   = glm::vec3(0.1f,      0.18725f, 0.1745f),
-    .diffuse   = glm::vec3(0.396f,    0.74151f, 0.69102f),
-    .specular  = glm::vec3(0.297254f, 0.30829f, 0.306678f),
-    .shininess = 0.1f
-  },
-
-  // Brass
-  {
-    .ambient   = glm::vec3(0.329412f, 0.223529f, 0.027451f),
-    .diffuse   = glm::vec3(0.780392f, 0.568627f, 0.113725f),
-    .specular  = glm::vec3(0.992157f, 0.941176f, 0.807843f),
-    .shininess = 0.21794872f
-  },
-
-  // Bronze
-  {
-    .ambient   = glm::vec3(0.2125f,   0.1275f,   0.054f),
-    .diffuse   = glm::vec3(0.714f,    0.4284f,   0.18144f),
-    .specular  = glm::vec3(0.393548f, 0.271906f, 0.166721f),
-    .shininess = 0.2f
-  },
-
-  // Chrome
-  {
-    .ambient   = glm::vec3(0.25f,     0.25f,     0.25f),
-    .diffuse   = glm::vec3(0.4f,      0.4f,      0.4f),
-    .specular  = glm::vec3(0.774597f, 0.774597f, 0.774597f),
-    .shininess = 0.6f
-  },
-
-  // Copper
-  {
-    .ambient   = glm::vec3(0.19125f,  0.0735f,   0.0225f),
-    .diffuse   = glm::vec3(0.7038f,   0.27048f,  0.0828f),
-    .specular  = glm::vec3(0.256777f, 0.137622f, 0.086014f),
-    .shininess = 0.1f
-  },
-};
-
 
 constexpr glm::vec3 kLightPosition(1.2f, 1.0f, 2.0f);
 // clang-format on
@@ -353,7 +265,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   }
 
   // Set the vertex attribute pointers
-  int stride = 6 * sizeof(float);
+  int stride = 8 * sizeof(float);
   // position
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(0);
@@ -362,6 +274,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float))
   );
   glEnableVertexAttribArray(1);
+  // texcoords
+  glVertexAttribPointer(
+    2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float))
+  );
+  glEnableVertexAttribArray(2);
 
   // Create VAO for light cube
   GLuint lightVao;
@@ -395,37 +312,36 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textureId);
   glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+    GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data
   );
   glGenerateMipmap(GL_TEXTURE_2D);
-  cubeShaderProgram->SetInt("uTexture", 0);
 
   // Free the image
   stbi_image_free(data);
 
-  // Load the awesome face texture
-  SDL_Log("Loading awesome face texture");
-  // Flip vertically because it's inversed by default
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char* data2 = stbi_load(
-    kAwesomeFaceTexturePath.string().c_str(), &width, &height, &numChannels, 0
+  // Specular map texture
+  SDL_Log("Loading container specular texture");
+  unsigned char* specularData = stbi_load(
+    kContainerSpecularTexturePath.string().c_str(),
+    &width,
+    &height,
+    &numChannels,
+    0
   );
-  stbi_set_flip_vertically_on_load(false);
-  if (data == nullptr) {
+  if (specularData == nullptr) {
     SDL_LogCritical(
       SDL_LOG_CATEGORY_APPLICATION,
       "[stb_image] Failed to load texture from path %s",
-      kContainerTexturePath.string().c_str()
+      kContainerSpecularTexturePath.c_str()
     );
     return SDL_APP_FAILURE;
   }
-  SDL_Log("  Loaded awesome face texture: %d x %d", width, height);
+  SDL_Log("  Loaded container specular texture: %d x %d", width, height);
 
-  // Create an OpenGL texture
-  GLuint textureId2;
-  glGenTextures(1, &textureId2);
+  GLuint specularTextureId;
+  glGenTextures(1, &specularTextureId);
   glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, textureId2);
+  glBindTexture(GL_TEXTURE_2D, specularTextureId);
   glTexImage2D(
     GL_TEXTURE_2D,
     0,
@@ -435,17 +351,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv) {
     0,
     GL_RGBA,
     GL_UNSIGNED_BYTE,
-    data2
+    specularData
   );
   glGenerateMipmap(GL_TEXTURE_2D);
-  cubeShaderProgram->SetInt("uTexture2", 1);
 
-  // Free the image
-  stbi_image_free(data2);
-
-  // learnopengl/textures/exercises/4: use a uniform to mix
-  // Initialize the mix uniform
-  cubeShaderProgram->SetFloat("uMix", 0.2f);
+  stbi_image_free(specularData);
 
   // Configure Camera
   std::unique_ptr camera =
@@ -539,6 +449,9 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   state->cubeShaderProgram->Use();
   glBindVertexArray(state->cubeVao);
 
+  state->cubeShaderProgram->SetInt("uMaterial.diffuse", 0);
+  state->cubeShaderProgram->SetInt("uMaterial.specular", 1);
+
   // Set uniforms for lighting
   state->cubeShaderProgram->SetUniform3f("uLight.position", kLightPosition);
   state->cubeShaderProgram->SetUniform3f("uLight.ambient", 0.2f, 0.2f, 0.2f);
@@ -575,19 +488,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
       glm::vec3(1.0f, 0.3f, 0.5f)
     );
     state->cubeShaderProgram->SetUniformMatrix4fv("uModel", model);
-
-    state->cubeShaderProgram->SetUniform3f(
-      "uMaterial.ambient", kMaterials[i].ambient
-    );
-    state->cubeShaderProgram->SetUniform3f(
-      "uMaterial.diffuse", kMaterials[i].diffuse
-    );
-    state->cubeShaderProgram->SetUniform3f(
-      "uMaterial.specular", kMaterials[i].specular
-    );
-    state->cubeShaderProgram->SetFloat(
-      "uMaterial.shininess", kMaterials[i].shininess
-    );
+    state->cubeShaderProgram->SetFloat("uMaterial.shininess", 1);
 
     glDrawArrays(GL_TRIANGLES, 0, sizeof(kVertices) / sizeof(kVertices[0]));
   }

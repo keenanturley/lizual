@@ -1,6 +1,7 @@
 {
     "files.associations": {
-        "gl.h": "c"
+        "gl.h": "c",
+        "stdexcept": "cpp"
     },
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools",
